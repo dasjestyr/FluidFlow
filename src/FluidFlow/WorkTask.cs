@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace FluidFlow
 {
+    [Serializable]
     public abstract class WorkTask : IWorkTask
     {
         /// <summary>

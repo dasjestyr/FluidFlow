@@ -105,6 +105,7 @@ namespace FluidFlow.Tests
         }
     }
 
+    [Serializable]
     public class FakeWorkTask : WorkTask
     {
         public override Task OnRun()

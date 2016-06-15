@@ -6,45 +6,32 @@ using System.Threading.Tasks;
 namespace FluidFlow
 {
     [Serializable]
-    public class Workflow : IWorkTask
+    public class Workflow : WorkTask
     {
         private readonly IServiceQueue _stateMonitor;
+        private readonly ITaskStateStore _store;
         private readonly List<IWorkTask> _pendingTasks = new List<IWorkTask>();
         
-        /// <summary>
-        /// The unique ID of this workflow.
-        /// </summary>
-        public Guid Id { get; }
-
-        /// <summary>
-        /// Gets the state of the task.
-        /// </summary>
-        /// <value>
-        /// The state of the task.
-        /// </value>
-        public TaskState State { get; private set; }
-
-        /// <summary>
-        /// Gets or sets the type of the task.
-        /// </summary>
-        /// <value>
-        /// The type of the task.
-        /// </value>
-        public TaskType Type { get; set; }
-
         /// <summary>
         /// A read-only collection of all tasks in this workflow.
         /// </summary>
         public IReadOnlyCollection<IWorkTask> PendingTasks => _pendingTasks;
 
         /// <summary>
-        /// Initializes an instance of <see cref="Workflow"/>
+        /// Initializes an instance of <see cref="Workflow" />
         /// </summary>
-        /// <param name="stateMonitor"></param>
-        public Workflow(IServiceQueue stateMonitor)
+        /// <param name="stateMonitor">The state monitor.</param>
+        /// <param name="store">The store.</param>
+        public Workflow(IServiceQueue stateMonitor, ITaskStateStore store)
         {
+            if(stateMonitor == null)
+                throw new ArgumentNullException(nameof(stateMonitor));
+
+            if(store == null)
+                throw new ArgumentNullException(nameof(store));
+
             _stateMonitor = stateMonitor;
-            Id = Guid.NewGuid();
+            _store = store;
         }
 
         /// <summary>
@@ -120,18 +107,13 @@ namespace FluidFlow
             return this;
         }
 
-        public async Task Run()
+        public override async Task OnRun()
         {
-            if(State != TaskState.NotStarted)
-                throw new InvalidOperationException("The workflow has already been started and/or has already finished.");
-
-            State = TaskState.Executing;
-
             foreach (var task in _pendingTasks)
             {
                 if (State == TaskState.Delayed)
                 {
-                    SaveState();
+                    await SaveState();
                     break;
                 }
 
@@ -159,9 +141,9 @@ namespace FluidFlow
             }
         }
 
-        private void SaveState()
+        private async Task SaveState()
         {
-            
+            await _store.Save(this);
         }
     }
 }

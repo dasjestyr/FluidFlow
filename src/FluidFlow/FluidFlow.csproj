@@ -40,10 +40,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DefaultSerializer.cs" />
+    <Compile Include="BinaryBlobTaskStore.cs" />
+    <Compile Include="BinarySerializer.cs" />
     <Compile Include="IDelayedWorkTask.cs" />
     <Compile Include="IServiceQueue.cs" />
     <Compile Include="IStateMonitor.cs" />
+    <Compile Include="ITaskSerializer.cs" />
+    <Compile Include="ITaskStateStore.cs" />
     <Compile Include="IWorkTask.cs" />
     <Compile Include="ParallelWorkTask.cs" />
     <Compile Include="TaskType.cs" />

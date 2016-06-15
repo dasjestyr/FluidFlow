@@ -9,13 +9,15 @@ namespace FluidFlow.Tests
     [ExcludeFromCodeCoverage]
     public class FluidFlowTests
     {
+        private readonly Mock<ITaskStateStore> _store;
         private readonly Mock<IServiceQueue> _serviceMonitor;
         private readonly Workflow _workflow;
 
         public FluidFlowTests()
         {
             _serviceMonitor = new Mock<IServiceQueue>();
-            _workflow = new Workflow(_serviceMonitor.Object);
+            _store = new Mock<ITaskStateStore>();
+            _workflow = new Workflow(_serviceMonitor.Object, _store.Object);
         }
 
         [Fact]
@@ -24,8 +26,8 @@ namespace FluidFlow.Tests
             // arrange
 
             // act
-            var wf1 = new Workflow(_serviceMonitor.Object);
-            var wf2 = new Workflow(_serviceMonitor.Object);
+            var wf1 = new Workflow(_serviceMonitor.Object, _store.Object);
+            var wf2 = new Workflow(_serviceMonitor.Object, _store.Object);
 
             // assert
             Assert.NotEqual(wf1.Id, wf2.Id);
@@ -176,7 +178,7 @@ namespace FluidFlow.Tests
             return taskMock.Object;
         }
 
-        private bool TaskIsFound(
+        private static bool TaskIsFound(
             Func<IWorkTask, Workflow> func,
             IWorkTask task,
             Workflow wf,

@@ -74,6 +74,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BinaryBlobTaskStoreTests.cs" />
+    <Compile Include="BinarySerializerTests.cs" />
     <Compile Include="FluidFlowTests.cs" />
     <Compile Include="ParallelWorkTaskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
