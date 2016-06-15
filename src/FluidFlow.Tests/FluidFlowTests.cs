@@ -171,8 +171,8 @@ namespace FluidFlow.Tests
         private static IWorkTask GetWorkTask()
         {
             var taskMock = new Mock<IWorkTask>();
-            taskMock.Setup(m => m.TaskId).Returns(Guid.NewGuid);
             taskMock.SetupAllProperties();
+            taskMock.Setup(m => m.TaskId).Returns(Guid.NewGuid());
             return taskMock.Object;
         }
 
@@ -183,7 +183,7 @@ namespace FluidFlow.Tests
             Guid id)
         {
             func(task);
-            var addedTask = _workflow.Tasks.Any(t => t.TaskId == id);
+            var addedTask = wf.Tasks.Any(t => t.TaskId == id);
             return addedTask;
         }
     }
