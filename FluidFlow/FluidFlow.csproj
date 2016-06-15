@@ -40,6 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IDelayedWorkTask.cs" />
+    <Compile Include="IServiceQueue.cs" />
+    <Compile Include="IStateMonitor.cs" />
+    <Compile Include="IWorkTask.cs" />
+    <Compile Include="ParallelWorkTask.cs" />
     <Compile Include="TaskType.cs" />
     <Compile Include="Workflow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

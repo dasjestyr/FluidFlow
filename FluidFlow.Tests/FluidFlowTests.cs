@@ -9,11 +9,13 @@ namespace FluidFlow.Tests
     [ExcludeFromCodeCoverage]
     public class FluidFlowTests
     {
-        private Mock<IStateMonitor> _stateMonitorMock;
+        private readonly Mock<IServiceQueue> _serviceMonitor;
+        private readonly Workflow _workflow;
 
         public FluidFlowTests()
         {
-            _stateMonitorMock = new Mock<IStateMonitor>();
+            _serviceMonitor = new Mock<IServiceQueue>();
+            _workflow = new Workflow(_serviceMonitor.Object);
         }
 
         [Fact]
@@ -22,8 +24,8 @@ namespace FluidFlow.Tests
             // arrange
 
             // act
-            var wf1 = new Workflow(_stateMonitorMock.Object);
-            var wf2 = new Workflow(_stateMonitorMock.Object);
+            var wf1 = new Workflow(_serviceMonitor.Object);
+            var wf2 = new Workflow(_serviceMonitor.Object);
 
             // assert
             Assert.NotEqual(wf1.WorkflowId, wf2.WorkflowId);
@@ -33,16 +35,13 @@ namespace FluidFlow.Tests
         public void Do_SetsTaskType()
         {
             // arrange
-            var wf = new Workflow(_stateMonitorMock.Object);
-            var task = new Mock<IWorkTask>();
-            task.Setup(m => m.Type);
-            task.SetupAllProperties();
+            var task = GetWorkTask();
 
             // act
-            wf.Do(task.Object);
+            _workflow.Do(task);
 
             // assert
-            Assert.Equal(TaskType.SychronizedTask, task.Object.Type);
+            Assert.Equal(TaskType.SychronizedTask, task.Type);
         }
 
         [Fact]
@@ -50,13 +49,12 @@ namespace FluidFlow.Tests
         {
             // arrange
             var id = Guid.NewGuid();
-            var wf = new Workflow(_stateMonitorMock.Object);
             var task = new Mock<IWorkTask>();
             task.Setup(m => m.TaskId).Returns(id);
 
             // act
             var addedTask = TaskIsFound(
-                wf.Do, task.Object, wf, id);
+                _workflow.Do, task.Object, _workflow, id);
 
             // assert
             Assert.True(addedTask);
@@ -66,14 +64,10 @@ namespace FluidFlow.Tests
         public void WaitFor_SetsTaskType()
         {
             // arrange
-            var wf = new Workflow(_stateMonitorMock.Object);
-            var taskMock = new Mock<IWorkTask>();
-            taskMock.Setup(m => m.Type);
-            taskMock.SetupAllProperties();
-            var task = taskMock.Object;
+            var task = GetWorkTask();
 
             // act
-            wf.WaitFor(task);
+            _workflow.WaitFor(task);
 
             // assert
             Assert.Equal(TaskType.Delayed, task.Type);
@@ -84,13 +78,12 @@ namespace FluidFlow.Tests
         {
             // arrange
             var id = Guid.NewGuid();
-            var wf = new Workflow(_stateMonitorMock.Object);
             var taskMock = new Mock<IWorkTask>();
             taskMock.Setup(m => m.TaskId).Returns(id);
 
             // act
             var taskAdded = TaskIsFound(
-                wf.WaitFor, taskMock.Object, wf, id);
+                _workflow.WaitFor, taskMock.Object, _workflow, id);
 
             // assert
             Assert.True(taskAdded);
@@ -100,14 +93,10 @@ namespace FluidFlow.Tests
         public void FireAndForget_SetsTaskType()
         {
             // arrange
-            var wf = new Workflow(_stateMonitorMock.Object);
-            var taskMock = new Mock<IWorkTask>();
-            taskMock.Setup(m => m.Type);
-            taskMock.SetupAllProperties();
-            var task = taskMock.Object;
+            var task = GetWorkTask();
 
             // act
-            wf.FireAndForget(task);
+            _workflow.FireAndForget(task);
 
             // assert
             Assert.Equal(TaskType.FireAndForget, task.Type);
@@ -118,26 +107,83 @@ namespace FluidFlow.Tests
         {
             // arrange
             var id = Guid.NewGuid();
-            var wf = new Workflow(_stateMonitorMock.Object);
             var taskMock = new Mock<IWorkTask>();
             taskMock.Setup(m => m.TaskId).Returns(id);
 
             // act
             var taskAdded = TaskIsFound(
-                wf.FireAndForget, taskMock.Object, wf, id);
+                _workflow.FireAndForget, taskMock.Object, _workflow, id);
 
             // assert
             Assert.True(taskAdded);
         }
 
-        private static bool TaskIsFound(
+        [Fact]
+        public void And_ConvertsLastTaskToParallel()
+        {
+            // arrange
+            var task1 = GetWorkTask();
+            var task2 = GetWorkTask();
+
+            // act
+            _workflow
+                .Do(task1)
+                .And(task2);
+
+            // assert
+            var last = _workflow.Tasks.LastOrDefault() as ParallelWorkTask;
+            Assert.NotNull(last);
+        }
+
+        [Fact]
+        public void And_AllTasksInCollection()
+        {
+            // arrange
+            var task1 = GetWorkTask();
+            var task2 = GetWorkTask();
+            var task3 = GetWorkTask();
+
+            // act
+            _workflow
+                .Do(task1)
+                .And(task2)
+                .And(task3);
+
+            var last = _workflow.Tasks.LastOrDefault() as ParallelWorkTask;
+
+            // assert
+            Assert.NotNull(last);
+            Assert.Equal(3, last.Tasks.Count);
+        }
+
+        [Fact]
+        public void And_EmptyWorkflow_Throws()
+        {
+            // arrange
+            var task = GetWorkTask();
+
+            // act
+
+            // assert
+            Assert.Throws<InvalidOperationException>(() => _workflow.And(task));
+        }
+
+        private static IWorkTask GetWorkTask()
+        {
+            var taskMock = new Mock<IWorkTask>();
+            taskMock.Setup(m => m.TaskId).Returns(Guid.NewGuid);
+            taskMock.SetupAllProperties();
+            return taskMock.Object;
+        }
+
+        private bool TaskIsFound(
             Func<IWorkTask, Workflow> func,
             IWorkTask task,
             Workflow wf,
             Guid id)
         {
             func(task);
-            var addedTask = wf.Tasks.Any(t => t.TaskId == id);
+            var addedTask = _workflow.Tasks.Any(t => t.TaskId == id);
             return addedTask;
         }
     }
