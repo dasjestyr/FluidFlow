@@ -22,6 +22,8 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("4c0a75c9-c962-4bbc-9708-b1eeef1879b4")]
 
+[assembly: InternalsVisibleTo("FluidFlow.Tests")]
+
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version

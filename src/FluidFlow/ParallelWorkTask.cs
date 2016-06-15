@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,17 +28,23 @@ namespace FluidFlow
         /// <param name="task"></param>
         public void Add(IWorkTask task)
         {
-            if(_tasks.All(t => t.TaskId != task.TaskId))
-                _tasks.Add(task);
+            if(task == null)
+                throw new ArgumentNullException(nameof(task));
+
+            if (_tasks.Any(t => t.Id == task.Id))
+                return;
+
+            task.Type = TaskType.Parallel;
+            _tasks.Add(task);
         }
 
         /// <summary>
         /// Starts all tasks and waits until all are completed.
         /// </summary>
         /// <returns></returns>
-        public override async Task Run()
+        public override async Task OnRun()
         {
-            var tasks = _tasks.Select(t => t.Run());
+            var tasks = _tasks.Select(t => t.Run()).ToList();
             await Task.WhenAll(tasks);
         }
     }

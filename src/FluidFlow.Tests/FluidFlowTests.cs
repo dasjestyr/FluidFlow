@@ -28,7 +28,7 @@ namespace FluidFlow.Tests
             var wf2 = new Workflow(_serviceMonitor.Object);
 
             // assert
-            Assert.NotEqual(wf1.WorkflowId, wf2.WorkflowId);
+            Assert.NotEqual(wf1.Id, wf2.Id);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace FluidFlow.Tests
             // arrange
             var id = Guid.NewGuid();
             var task = new Mock<IWorkTask>();
-            task.Setup(m => m.TaskId).Returns(id);
+            task.Setup(m => m.Id).Returns(id);
 
             // act
             var addedTask = TaskIsFound(
@@ -79,7 +79,7 @@ namespace FluidFlow.Tests
             // arrange
             var id = Guid.NewGuid();
             var taskMock = new Mock<IWorkTask>();
-            taskMock.Setup(m => m.TaskId).Returns(id);
+            taskMock.Setup(m => m.Id).Returns(id);
 
             // act
             var taskAdded = TaskIsFound(
@@ -108,7 +108,7 @@ namespace FluidFlow.Tests
             // arrange
             var id = Guid.NewGuid();
             var taskMock = new Mock<IWorkTask>();
-            taskMock.Setup(m => m.TaskId).Returns(id);
+            taskMock.Setup(m => m.Id).Returns(id);
 
             // act
             var taskAdded = TaskIsFound(
@@ -131,7 +131,7 @@ namespace FluidFlow.Tests
                 .And(task2);
 
             // assert
-            var last = _workflow.Tasks.LastOrDefault() as ParallelWorkTask;
+            var last = _workflow.PendingTasks.LastOrDefault() as ParallelWorkTask;
             Assert.NotNull(last);
         }
 
@@ -149,7 +149,7 @@ namespace FluidFlow.Tests
                 .And(task2)
                 .And(task3);
 
-            var last = _workflow.Tasks.LastOrDefault() as ParallelWorkTask;
+            var last = _workflow.PendingTasks.LastOrDefault() as ParallelWorkTask;
 
             // assert
             Assert.NotNull(last);
@@ -172,7 +172,7 @@ namespace FluidFlow.Tests
         {
             var taskMock = new Mock<IWorkTask>();
             taskMock.SetupAllProperties();
-            taskMock.Setup(m => m.TaskId).Returns(Guid.NewGuid());
+            taskMock.Setup(m => m.Id).Returns(Guid.NewGuid());
             return taskMock.Object;
         }
 
@@ -183,7 +183,7 @@ namespace FluidFlow.Tests
             Guid id)
         {
             func(task);
-            var addedTask = wf.Tasks.Any(t => t.TaskId == id);
+            var addedTask = wf.PendingTasks.Any(t => t.Id == id);
             return addedTask;
         }
     }

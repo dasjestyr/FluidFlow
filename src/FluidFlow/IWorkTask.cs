@@ -8,7 +8,15 @@ namespace FluidFlow
         /// <summary>
         /// The unique id of this task.
         /// </summary>
-        Guid TaskId { get; }
+        Guid Id { get; }
+
+        /// <summary>
+        /// Gets the state of the task.
+        /// </summary>
+        /// <value>
+        /// The state of the task.
+        /// </value>
+        TaskState State { get; }
 
         /// <summary>
         /// The type of tasks this instance represents.

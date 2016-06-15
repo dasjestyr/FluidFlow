@@ -5,21 +5,37 @@ using System.Threading.Tasks;
 
 namespace FluidFlow
 {
-    public class Workflow
+    [Serializable]
+    public class Workflow : IWorkTask
     {
         private readonly IServiceQueue _stateMonitor;
-        private readonly List<IWorkTask> _tasks = new List<IWorkTask>();
-        private WorkflowState _workflowState = WorkflowState.NotStarted;
+        private readonly List<IWorkTask> _pendingTasks = new List<IWorkTask>();
         
         /// <summary>
         /// The unique ID of this workflow.
         /// </summary>
-        public Guid WorkflowId { get; private set; }
+        public Guid Id { get; }
+
+        /// <summary>
+        /// Gets the state of the task.
+        /// </summary>
+        /// <value>
+        /// The state of the task.
+        /// </value>
+        public TaskState State { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the type of the task.
+        /// </summary>
+        /// <value>
+        /// The type of the task.
+        /// </value>
+        public TaskType Type { get; set; }
 
         /// <summary>
         /// A read-only collection of all tasks in this workflow.
         /// </summary>
-        public IReadOnlyCollection<IWorkTask> Tasks => _tasks;
+        public IReadOnlyCollection<IWorkTask> PendingTasks => _pendingTasks;
 
         /// <summary>
         /// Initializes an instance of <see cref="Workflow"/>
@@ -28,7 +44,7 @@ namespace FluidFlow
         public Workflow(IServiceQueue stateMonitor)
         {
             _stateMonitor = stateMonitor;
-            WorkflowId = Guid.NewGuid();
+            Id = Guid.NewGuid();
         }
 
         /// <summary>
@@ -39,7 +55,7 @@ namespace FluidFlow
         public Workflow Do(IWorkTask task)
         {
             task.Type = TaskType.SychronizedTask;
-            _tasks.Add(task);
+            _pendingTasks.Add(task);
 
             return this;
         }
@@ -52,7 +68,7 @@ namespace FluidFlow
         public Workflow WaitFor(IWorkTask task)
         {
             task.Type = TaskType.Delayed;
-            _tasks.Add(task);
+            _pendingTasks.Add(task);
 
             return this;
         }
@@ -65,7 +81,7 @@ namespace FluidFlow
         public Workflow FireAndForget(IWorkTask task)
         {
             task.Type = TaskType.FireAndForget;
-            _tasks.Add(task);
+            _pendingTasks.Add(task);
 
             return this;
         }
@@ -79,11 +95,11 @@ namespace FluidFlow
         {
             task.Type = TaskType.Parallel;
 
-            var lastTask = _tasks.LastOrDefault();
+            var lastTask = _pendingTasks.LastOrDefault();
             if(lastTask == null || lastTask.Type == TaskType.Delayed)
                 throw new InvalidOperationException("Cannot add a parallel task to a delayed task or an empty workflow");
 
-            var lastTaskIndex = _tasks.IndexOf(lastTask);
+            var lastTaskIndex = _pendingTasks.IndexOf(lastTask);
             var asParallelTask = lastTask as ParallelWorkTask;
 
             // imake sure the last task is a parallel task and add this task to it
@@ -93,27 +109,27 @@ namespace FluidFlow
                 parallelCollection.Add(lastTask);
                 parallelCollection.Add(task);
 
-                _tasks[lastTaskIndex] = parallelCollection;
+                _pendingTasks[lastTaskIndex] = parallelCollection;
             }
             else
             {
                 asParallelTask.Add(task);
-                _tasks[lastTaskIndex] = asParallelTask;
+                _pendingTasks[lastTaskIndex] = asParallelTask;
             }
 
             return this;
         }
 
-        public async Task Start()
+        public async Task Run()
         {
-            if(_workflowState != WorkflowState.NotStarted)
+            if(State != TaskState.NotStarted)
                 throw new InvalidOperationException("The workflow has already been started and/or has already finished.");
 
-            _workflowState = WorkflowState.Executing;
+            State = TaskState.Executing;
 
-            foreach (var task in _tasks)
+            foreach (var task in _pendingTasks)
             {
-                if (_workflowState == WorkflowState.Delayed)
+                if (State == TaskState.Delayed)
                 {
                     SaveState();
                     break;
@@ -123,43 +139,29 @@ namespace FluidFlow
                 {
                     case TaskType.SychronizedTask:
                     case TaskType.Parallel:
-                        _workflowState = WorkflowState.Executing;
+                        State = TaskState.Executing;
                         await task.Run();
                         break;
                     case TaskType.FireAndForget:
-                        _workflowState = WorkflowState.Executing;
+                        State = TaskState.Executing;
                         task.Run().Start();
                         break;
                     case TaskType.Delayed:
                         _stateMonitor.AddTask(task as IDelayedWorkTask);
-                        _workflowState = WorkflowState.Delayed;
+                        State = TaskState.Delayed;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("task", $"Unknown task type {task.Type}");
                 }
+
+                if (task.State == TaskState.Completed)
+                    _pendingTasks.Remove(task);
             }
         }
 
         private void SaveState()
         {
             
-        }
-    }
-
-    public class WorkTask : IWorkTask
-    {
-        public Guid TaskId { get; }
-
-        public TaskType Type { get; set; }
-
-        public WorkTask()
-        {
-            TaskId = Guid.NewGuid();
-        }
-
-        public virtual Task Run()
-        {
-            throw new NotImplementedException();
         }
     }
 }

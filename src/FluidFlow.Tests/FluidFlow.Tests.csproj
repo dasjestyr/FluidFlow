@@ -75,7 +75,9 @@
   </Choose>
   <ItemGroup>
     <Compile Include="FluidFlowTests.cs" />
+    <Compile Include="ParallelWorkTaskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WorkTaskTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DefaultSerializer.cs" />
     <Compile Include="IDelayedWorkTask.cs" />
     <Compile Include="IServiceQueue.cs" />
     <Compile Include="IStateMonitor.cs" />
@@ -48,7 +49,8 @@
     <Compile Include="TaskType.cs" />
     <Compile Include="Workflow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WorkflowState.cs" />
+    <Compile Include="TaskState.cs" />
+    <Compile Include="WorkTask.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
