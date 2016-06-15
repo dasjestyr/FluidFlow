@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using FluidFlow.Serialization;
+using FluidFlow.Tasks;
 using Moq;
 using Xunit;
 
-namespace FluidFlow.Tests
+namespace FluidFlow.Tests.Tasks
 {
     [ExcludeFromCodeCoverage]
-    public class FluidFlowTests
+    public class WorkflowTests
     {
         private readonly Mock<ITaskStateStore> _store;
         private readonly Mock<IServiceQueue> _serviceMonitor;
         private readonly Workflow _workflow;
 
-        public FluidFlowTests()
+        public WorkflowTests()
         {
             _serviceMonitor = new Mock<IServiceQueue>();
             _store = new Mock<ITaskStateStore>();

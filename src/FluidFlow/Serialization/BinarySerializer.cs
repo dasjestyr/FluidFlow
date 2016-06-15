@@ -1,7 +1,8 @@
 ﻿using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using FluidFlow.Tasks;
 
-namespace FluidFlow
+namespace FluidFlow.Serialization
 {
     public class BinarySerializer : ITaskSerializer
     {

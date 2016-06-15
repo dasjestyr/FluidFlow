@@ -1,4 +1,4 @@
-﻿namespace FluidFlow
+﻿namespace FluidFlow.Tasks
 {
     public interface IDelayedWorkTask : IWorkTask
     {

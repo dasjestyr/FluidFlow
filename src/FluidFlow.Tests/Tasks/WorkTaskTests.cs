@@ -1,7 +1,8 @@
-﻿using Moq;
+﻿using FluidFlow.Tasks;
+using Moq;
 using Xunit;
 
-namespace FluidFlow.Tests
+namespace FluidFlow.Tests.Tasks
 {
     public class WorkTaskTests
     {

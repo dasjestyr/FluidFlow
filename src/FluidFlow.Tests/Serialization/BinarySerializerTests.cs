@@ -1,6 +1,8 @@
-﻿using Xunit;
+﻿using FluidFlow.Serialization;
+using FluidFlow.Tests.Tasks;
+using Xunit;
 
-namespace FluidFlow.Tests
+namespace FluidFlow.Tests.Serialization
 {
     public class BinarySerializerTests
     {

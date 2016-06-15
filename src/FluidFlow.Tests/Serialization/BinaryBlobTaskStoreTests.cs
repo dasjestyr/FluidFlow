@@ -1,8 +1,10 @@
 ﻿using System;
+using FluidFlow.Serialization;
+using FluidFlow.Tasks;
 using Moq;
 using Xunit;
 
-namespace FluidFlow.Tests
+namespace FluidFlow.Tests.Serialization
 {
     public class BinaryBlobTaskStoreTests
     {

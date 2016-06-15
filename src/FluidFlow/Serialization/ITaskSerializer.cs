@@ -1,4 +1,6 @@
-﻿namespace FluidFlow
+﻿using FluidFlow.Tasks;
+
+namespace FluidFlow.Serialization
 {
     public interface ITaskSerializer
     {

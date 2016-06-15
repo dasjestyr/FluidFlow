@@ -2,10 +2,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using FluidFlow.Tasks;
 using Moq;
 using Xunit;
 
-namespace FluidFlow.Tests
+namespace FluidFlow.Tests.Tasks
 {
     [ExcludeFromCodeCoverage]
     public class ParallelWorkTaskTests

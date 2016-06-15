@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FluidFlow.Serialization;
 
-namespace FluidFlow
+namespace FluidFlow.Tasks
 {
     [Serializable]
     public class Workflow : WorkTask

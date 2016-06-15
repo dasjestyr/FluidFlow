@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace FluidFlow
+namespace FluidFlow.Tasks
 {
     public interface IStateMonitor
     {

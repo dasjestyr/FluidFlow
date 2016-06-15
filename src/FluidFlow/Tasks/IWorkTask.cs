@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace FluidFlow
+namespace FluidFlow.Tasks
 {
     public interface IWorkTask
     {

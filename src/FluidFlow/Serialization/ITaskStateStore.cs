@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using FluidFlow.Tasks;
 
-namespace FluidFlow
+namespace FluidFlow.Serialization
 {
     public interface ITaskStateStore
     {
