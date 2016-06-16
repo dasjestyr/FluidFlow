@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using FluidFlow.Specification;
 using Xunit;
 
 namespace FluidFlow.Tests.Specification
 {
+    [ExcludeFromCodeCoverage]
     public class OrSpecificationTests
     {
         [Fact]

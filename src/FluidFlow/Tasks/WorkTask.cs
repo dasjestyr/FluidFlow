@@ -1,8 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using FluidFlow.Tasks;
 
-namespace FluidFlow
+namespace FluidFlow.Tasks
 {
     [Serializable]
     public abstract class WorkTask : IWorkTask

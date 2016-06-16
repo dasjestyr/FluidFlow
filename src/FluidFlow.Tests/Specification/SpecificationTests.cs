@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using FluidFlow.Specification;
 using Xunit;
 
 namespace FluidFlow.Tests.Specification
 {
+    [ExcludeFromCodeCoverage]
     public class SpecificationTests
     {
         private readonly List<FakePerson> _users;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using FluidFlow.Serialization;
 using FluidFlow.Tasks;
 using Moq;
@@ -6,6 +7,7 @@ using Xunit;
 
 namespace FluidFlow.Tests.Serialization
 {
+    [ExcludeFromCodeCoverage]
     public class BinaryBlobTaskStoreTests
     {
         [Fact]

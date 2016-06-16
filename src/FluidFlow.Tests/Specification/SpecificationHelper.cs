@@ -1,8 +1,10 @@
-﻿using FluidFlow.Specification;
+﻿using System.Diagnostics.CodeAnalysis;
+using FluidFlow.Specification;
 using Moq;
 
 namespace FluidFlow.Tests.Specification
 {
+    [ExcludeFromCodeCoverage]
     public class SpecificationHelper
     {
         public static ISpecification<object> GetSpec(bool returnValue)

@@ -1,9 +1,11 @@
-﻿using FluidFlow.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
+using FluidFlow.Tasks;
 using Moq;
 using Xunit;
 
 namespace FluidFlow.Tests.Tasks
 {
+    [ExcludeFromCodeCoverage]
     public class WorkTaskTests
     {
         [Fact]

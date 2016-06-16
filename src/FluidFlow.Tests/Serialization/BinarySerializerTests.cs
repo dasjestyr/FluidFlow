@@ -1,9 +1,11 @@
-﻿using FluidFlow.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using FluidFlow.Serialization;
 using FluidFlow.Tests.Tasks;
 using Xunit;
 
 namespace FluidFlow.Tests.Serialization
 {
+    [ExcludeFromCodeCoverage]
     public class BinarySerializerTests
     {
         [Fact]
