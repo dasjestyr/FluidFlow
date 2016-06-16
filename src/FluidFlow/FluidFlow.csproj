@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ex\TaskEx.cs" />
     <Compile Include="Serialization\BinaryBlobTaskStore.cs" />
     <Compile Include="Serialization\BinarySerializer.cs" />
     <Compile Include="Serialization\ITaskSerializer.cs" />

@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using FluidFlow.Specification;
+using Microsoft.Win32;
 using Xunit;
 
 namespace FluidFlow.Tests.Specification
@@ -79,7 +80,7 @@ namespace FluidFlow.Tests.Specification
             Assert.True(womenThatCanDrink.All(u => u.Gender == Gender.Female), "There were some users that were not female");
             Assert.True(womenThatCanDrink.All(u => u.Age >= 21), "There were some users that were not old enough to drink");
         }
-
+        
         private static List<FakePerson> GetUsers(int count)
         {
             var users = GenFu.GenFu.ListOf<FakePerson>(count);

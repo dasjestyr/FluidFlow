@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using FluidFlow.Ex;
 using FluidFlow.Specification;
 using Xunit;
 
@@ -8,6 +9,21 @@ namespace FluidFlow.Tests.Specification
     [ExcludeFromCodeCoverage]
     public class ExpressionSpecificationTests
     {
+        [Fact]
+        public async void IsSatisfiedByAsync_DoesNotDeadlock()
+        {
+            // arrange
+            var spec = new ExpressionSpecification<int>(o => o == 10);
+
+            // act
+            var result = await spec
+                .IsSatisfiedByAsync(10)
+                .WithTimeout(TimeSpan.FromSeconds(5000));
+
+            // assert
+            Assert.True(result);
+        }
+
         [Fact]
         public void IsSatisfiedBy_ReturnsTrue_IsTrue()
         {
