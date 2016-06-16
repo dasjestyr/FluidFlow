@@ -8,7 +8,7 @@ namespace FluidFlow.Tests.Specification
 {
     public class SpecificationTests
     {
-        private List<FakePerson> _users;
+        private readonly List<FakePerson> _users;
 
         public SpecificationTests()
         {
@@ -91,14 +91,6 @@ namespace FluidFlow.Tests.Specification
         public override bool IsSatisfiedBy(FakePerson target)
         {
             return target.Gender == Gender.Male;
-        }
-    }
-
-    internal class FirstNameBeginsWithJSpec : Specification<FakePerson>
-    {
-        public override bool IsSatisfiedBy(FakePerson target)
-        {
-            return target.FirstName.StartsWith("J", StringComparison.OrdinalIgnoreCase);
         }
     }
 

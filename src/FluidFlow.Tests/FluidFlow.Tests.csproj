@@ -82,6 +82,7 @@
     <Compile Include="Serialization\BinaryBlobTaskStoreTests.cs" />
     <Compile Include="Serialization\BinarySerializerTests.cs" />
     <Compile Include="Specification\AndSpecificationTests.cs" />
+    <Compile Include="Specification\ExpressionSpecificationTests.cs" />
     <Compile Include="Specification\NotSpecificationTests.cs" />
     <Compile Include="Specification\OrSpecificationTests.cs" />
     <Compile Include="Specification\SpecificationHelper.cs" />

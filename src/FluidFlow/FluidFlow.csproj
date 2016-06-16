@@ -45,6 +45,7 @@
     <Compile Include="Serialization\ITaskSerializer.cs" />
     <Compile Include="Serialization\ITaskStateStore.cs" />
     <Compile Include="Specification\AndSpecification.cs" />
+    <Compile Include="Specification\ExpressionSpecification.cs" />
     <Compile Include="Specification\ISpecification.cs" />
     <Compile Include="Specification\NotSpecification.cs" />
     <Compile Include="Specification\OrSpecification.cs" />
