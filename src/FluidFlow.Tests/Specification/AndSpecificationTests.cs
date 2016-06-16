@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluidFlow.Specification;
 using Xunit;
 
@@ -19,7 +15,7 @@ namespace FluidFlow.Tests.Specification
             var spec = new AndSpecification<object>(left, right);
 
             // act
-            var isSatisifed = spec.IsSatisfiedBy(null);
+            var isSatisifed = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.True(isSatisifed);
@@ -34,7 +30,7 @@ namespace FluidFlow.Tests.Specification
             var spec = new AndSpecification<object>(left, right);
 
             // act
-            var isSatisifed = spec.IsSatisfiedBy(null);
+            var isSatisifed = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.False(isSatisifed);
@@ -49,7 +45,7 @@ namespace FluidFlow.Tests.Specification
             var spec = new AndSpecification<object>(left, right);
 
             // act
-            var isSatisifed = spec.IsSatisfiedBy(null);
+            var isSatisifed = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.False(isSatisifed);
@@ -64,7 +60,7 @@ namespace FluidFlow.Tests.Specification
             var spec = new AndSpecification<object>(left, right);
 
             // act
-            var isSatisifed = spec.IsSatisfiedBy(null);
+            var isSatisifed = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.False(isSatisifed);

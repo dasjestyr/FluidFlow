@@ -35,6 +35,19 @@ namespace FluidFlow.Tests.Specification
         }
 
         [Fact]
+        public void IsSatisfiedBy_NullTarget_Throws()
+        {
+            // arrange
+            var left = SpecificationHelper.GetSpec(true);
+            var spec = new NotSpecification<object>(left);
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => spec.IsSatisfiedBy(null));
+        }
+
+        [Fact]
         public void Ctor_NullSpec_Throws()
         {
             // arrange
