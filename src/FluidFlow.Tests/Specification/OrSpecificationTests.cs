@@ -1,4 +1,5 @@
-﻿using FluidFlow.Specification;
+﻿using System;
+using FluidFlow.Specification;
 using Xunit;
 
 namespace FluidFlow.Tests.Specification
@@ -14,7 +15,7 @@ namespace FluidFlow.Tests.Specification
             var spec = new OrSpecification<object>(left, right);
 
             // act
-            var isSatisfied = spec.IsSatisfiedBy(null);
+            var isSatisfied = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.True(isSatisfied);
@@ -29,7 +30,7 @@ namespace FluidFlow.Tests.Specification
             var spec = new OrSpecification<object>(left, right);
 
             // act
-            var isSatisfied = spec.IsSatisfiedBy(null);
+            var isSatisfied = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.True(isSatisfied);
@@ -44,7 +45,7 @@ namespace FluidFlow.Tests.Specification
             var spec = new OrSpecification<object>(left, right);
 
             // act
-            var isSatisfied = spec.IsSatisfiedBy(null);
+            var isSatisfied = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.True(isSatisfied);
@@ -59,12 +60,48 @@ namespace FluidFlow.Tests.Specification
             var spec = new OrSpecification<object>(left, right);
 
             // act
-            var isSatisfied = spec.IsSatisfiedBy(null);
+            var isSatisfied = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.False(isSatisfied);
         }
 
-        
+        [Fact]
+        public void IsSatisfiedBy_NullTarget_Throws()
+        {
+            // arrange
+            var left = SpecificationHelper.GetSpec(true);
+            var right = SpecificationHelper.GetSpec(true);
+            var spec = new OrSpecification<object>(left, right);
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => spec.IsSatisfiedBy(null));
+        }
+
+        [Fact]
+        public void Ctor_LeftNull_Throws()
+        {
+            // arrange
+            var spec = SpecificationHelper.GetSpec(true);
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new OrSpecification<object>(null, spec));
+        }
+
+        [Fact]
+        public void Ctor_RightNull_Throws()
+        {
+            // arrange
+            var spec = SpecificationHelper.GetSpec(true);
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new OrSpecification<object>(spec, null));
+        }
     }
 }

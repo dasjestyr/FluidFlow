@@ -69,5 +69,29 @@ namespace FluidFlow.Tests.Specification
             // assert
             Assert.False(isSatisifed);
         }
+
+        [Fact]
+        public void Ctor_LeftNull_Throws()
+        {
+            // arrange
+            var spec = SpecificationHelper.GetSpec(true);
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new AndSpecification<object>(null, spec));
+        }
+
+        [Fact]
+        public void Ctor_RightNull_Throws()
+        {
+            // arrange
+            var spec = SpecificationHelper.GetSpec(true);
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new AndSpecification<object>(spec, null));
+        }
     }
 }

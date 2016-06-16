@@ -26,6 +26,9 @@ namespace FluidFlow.Specification
         /// <returns></returns>
         public override bool IsSatisfiedBy(T target)
         {
+            if (target == null)
+                throw new ArgumentNullException(nameof(target));
+
             return _expression(target);
         }
     }

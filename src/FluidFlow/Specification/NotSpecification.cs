@@ -1,4 +1,6 @@
-﻿namespace FluidFlow.Specification
+﻿using System;
+
+namespace FluidFlow.Specification
 {
     public class NotSpecification<T> : Specification<T>
     {
@@ -10,6 +12,9 @@
         /// <param name="spec">The spec.</param>
         public NotSpecification(ISpecification<T> spec)
         {
+            if (spec == null)
+                throw new ArgumentNullException(nameof(spec));
+
             _spec = spec;
         }
 
@@ -20,6 +25,9 @@
         /// <returns></returns>
         public override bool IsSatisfiedBy(T target)
         {
+            if(target == null)
+                throw new ArgumentNullException(nameof(target));
+
             return !_spec.IsSatisfiedBy(target);
         }
     }

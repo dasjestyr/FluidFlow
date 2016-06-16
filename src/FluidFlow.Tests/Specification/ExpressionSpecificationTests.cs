@@ -45,5 +45,17 @@ namespace FluidFlow.Tests.Specification
             // assert
             Assert.Throws<ArgumentNullException>(() => new ExpressionSpecification<int>(null));
         }
+
+        [Fact]
+        public void IsSatisfiedBy_NullTarget_Throws()
+        {
+            // arrange
+            var spec = new ExpressionSpecification<object>(o => true);
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => spec.IsSatisfiedBy(null));
+        }
     }
 }

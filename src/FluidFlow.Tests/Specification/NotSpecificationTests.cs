@@ -1,4 +1,5 @@
-﻿using FluidFlow.Specification;
+﻿using System;
+using FluidFlow.Specification;
 using Xunit;
 
 namespace FluidFlow.Tests.Specification
@@ -13,7 +14,7 @@ namespace FluidFlow.Tests.Specification
             var spec = new NotSpecification<object>(left);
 
             // act
-            var isSatisifed = spec.IsSatisfiedBy(null);
+            var isSatisifed = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.True(isSatisifed);
@@ -27,10 +28,21 @@ namespace FluidFlow.Tests.Specification
             var spec = new NotSpecification<object>(left);
 
             // act
-            var isSatisifed = spec.IsSatisfiedBy(null);
+            var isSatisifed = spec.IsSatisfiedBy(1);
 
             // assert
             Assert.False(isSatisifed);
+        }
+
+        [Fact]
+        public void Ctor_NullSpec_Throws()
+        {
+            // arrange
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new NotSpecification<object>(null));
         }
     }
 }
