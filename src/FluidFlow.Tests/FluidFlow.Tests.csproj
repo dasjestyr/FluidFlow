@@ -39,6 +39,11 @@
       <HintPath>..\packages\Castle.Core.3.3.3\lib\net45\Castle.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="GenFu, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GenFu.1.1.0\lib\net45\GenFu.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Moq, Version=4.5.9.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
       <HintPath>..\packages\Moq.4.5.9\lib\net45\Moq.dll</HintPath>
       <Private>True</Private>
@@ -76,6 +81,11 @@
   <ItemGroup>
     <Compile Include="Serialization\BinaryBlobTaskStoreTests.cs" />
     <Compile Include="Serialization\BinarySerializerTests.cs" />
+    <Compile Include="Specification\AndSpecificationTests.cs" />
+    <Compile Include="Specification\NotSpecificationTests.cs" />
+    <Compile Include="Specification\OrSpecificationTests.cs" />
+    <Compile Include="Specification\SpecificationHelper.cs" />
+    <Compile Include="Specification\SpecificationTests.cs" />
     <Compile Include="Tasks\WorkflowTests.cs" />
     <Compile Include="Tasks\ParallelWorkTaskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
