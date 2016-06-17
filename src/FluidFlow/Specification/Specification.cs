@@ -2,6 +2,11 @@
 
 namespace FluidFlow.Specification
 {
+    /************************************ DESIGN NOTE ***************************************
+     *  We make the synchronous method mandatory (vs. having default to the Async method) 
+     *  so that it can be clearly used in LINQ WHERE clauses where async isn't permitted 
+     ****************************************************************************************/
+
     public abstract class Specification<T> : ISpecification<T>
     {
         /// <summary>
