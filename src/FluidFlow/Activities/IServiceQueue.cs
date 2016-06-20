@@ -1,4 +1,4 @@
-﻿namespace FluidFlow.Tasks
+﻿namespace FluidFlow.Activities
 {
     public interface IServiceQueue
     {

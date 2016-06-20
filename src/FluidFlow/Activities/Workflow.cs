@@ -5,15 +5,21 @@ using System.Threading.Tasks;
 using FluidFlow.Serialization;
 using FluidFlow.Specification;
 
-namespace FluidFlow.Tasks
+namespace FluidFlow.Activities
 {
     [Serializable]
     public class Workflow : Activity, IWorkflowActivity
     {
         private readonly ITaskStateStore _taskStore;
-        private IActivity _lastActivity;
         private readonly WorkflowExecutor _executor;
-        
+        private IActivity _lastActivity;
+
+        /// <summary>
+        /// Gets the activity queue. 
+        /// </summary>
+        /// <value>
+        /// The activity queue.
+        /// </value>
         public Queue<IActivity> ActivityQueue { get; private set; } = new Queue<IActivity>();
 
         /// <summary>
@@ -85,12 +91,12 @@ namespace FluidFlow.Tasks
 
             var lastTask = asList.LastOrDefault();
             if (lastTask == null || lastTask.Type == ActivityType.Delayed)
-                throw new InvalidOperationException("Cannot add a parallel task to a delayed task or an empty workflow");
+                throw new InvalidOperationException("Cannot add a parallel task to a delayed task or an empty workflow.");
             
             var lastTaskIndex = asList.IndexOf(lastTask);
             var asParallelTask = lastTask as ParallelActivity;
             
-            // imake sure the last task is a parallel task and add this task to it
+            // make sure the last task is a parallel task and add this task to it
             if (asParallelTask == null)
             {
                 var parallelCollection = new ParallelActivity();
@@ -115,11 +121,12 @@ namespace FluidFlow.Tasks
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="specification">The specification.</param>
-        /// <param name="runOnSuccess">The activity that will run if the specification is satisfied.</param>
+        /// <param name="onSuccess">The activity that will run if the specification is satisfied.</param>
+        /// <param name="onFailure">Optional. Runs when the specification is not satisfied.</param>
         /// <returns></returns>
-        public Workflow IfThen<T>(ISpecification<T> specification, IActivity runOnSuccess)
+        public Workflow Condition<T>(ISpecification<T> specification, IActivity onSuccess, IActivity onFailure = null)
         {
-            var specActivity = new SpecificationActivity<T>(specification, _lastActivity, runOnSuccess);
+            var specActivity = new SpecificationActivity<T>(specification, _lastActivity, onSuccess, onFailure);
             ActivityQueue.Enqueue(specActivity);
 
             return this;

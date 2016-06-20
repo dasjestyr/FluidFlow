@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace FluidFlow.Tasks
+namespace FluidFlow.Activities
 {
     public class ParallelActivity : Activity
     {

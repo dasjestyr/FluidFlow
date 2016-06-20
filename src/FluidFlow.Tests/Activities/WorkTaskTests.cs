@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using FluidFlow.Tasks;
+using FluidFlow.Activities;
 using Moq;
 using Xunit;
 
-namespace FluidFlow.Tests.Tasks
+namespace FluidFlow.Tests.Activities
 {
     [ExcludeFromCodeCoverage]
     public class WorkTaskTests

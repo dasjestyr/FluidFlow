@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace FluidFlow.Tasks
+namespace FluidFlow.Activities
 {
     [Serializable]
     public abstract class Activity : IActivity
@@ -30,7 +30,7 @@ namespace FluidFlow.Tasks
         /// <value>
         /// The result.
         /// </value>
-        public object Result { get; private set; }
+        public object Result { get; protected set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Activity"/> class.

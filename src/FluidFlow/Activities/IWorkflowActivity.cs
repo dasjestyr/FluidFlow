@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FluidFlow.Tasks
+namespace FluidFlow.Activities
 {
     public interface IWorkflowActivity : IActivity
     {

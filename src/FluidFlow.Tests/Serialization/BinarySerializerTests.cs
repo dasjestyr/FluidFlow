@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using FluidFlow.Serialization;
-using FluidFlow.Tests.Tasks;
+using FluidFlow.Tests.Activities;
 using Xunit;
 
 namespace FluidFlow.Tests.Serialization

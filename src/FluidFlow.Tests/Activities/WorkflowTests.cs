@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using FluidFlow.Activities;
 using FluidFlow.Serialization;
-using FluidFlow.Tasks;
 using Moq;
 using Xunit;
 
-namespace FluidFlow.Tests.Tasks
+namespace FluidFlow.Tests.Activities
 {
     [ExcludeFromCodeCoverage]
     public class WorkflowTests
@@ -157,7 +157,7 @@ namespace FluidFlow.Tests.Tasks
                 .And(task2);
 
             // assert
-            var last = _workflow.PendingActivities.LastOrDefault() as ParallelActivity;
+            var last = _workflow.ActivityQueue.ToList().LastOrDefault() as ParallelActivity;
             Assert.NotNull(last);
         }
 
@@ -175,7 +175,7 @@ namespace FluidFlow.Tests.Tasks
                 .And(task2)
                 .And(task3);
 
-            var last = _workflow.PendingActivities.LastOrDefault() as ParallelActivity;
+            var last = _workflow.ActivityQueue.ToList().LastOrDefault() as ParallelActivity;
 
             // assert
             Assert.NotNull(last);
@@ -209,7 +209,7 @@ namespace FluidFlow.Tests.Tasks
             Guid id)
         {
             func(task);
-            var addedTask = wf.PendingActivities.Any(t => t.Id == id);
+            var addedTask = wf.ActivityQueue.ToList().Any(t => t.Id == id);
             return addedTask;
         }
     }

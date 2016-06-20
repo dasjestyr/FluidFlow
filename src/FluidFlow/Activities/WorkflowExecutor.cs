@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+#pragma warning disable 4014
 
-namespace FluidFlow.Tasks
+namespace FluidFlow.Activities
 {
+    [Serializable]
     internal class WorkflowExecutor
     {
         private readonly IWorkflowActivity _parentActivity;
@@ -46,7 +48,7 @@ namespace FluidFlow.Tasks
                     break;
                 case ActivityType.FireAndForget:
                     _parentActivity.State = ActivityState.Executing;
-                    RunAndRemove(activity).Start(); // allow it to dequeue in the background
+                    Task.Run(() => RunAndRemove(activity)); // allow it to dequeue in the background
                     break;
                 case ActivityType.Delayed:
                     _serviceQueue.AddTask(activity as IDelayedActivity);
@@ -60,7 +62,7 @@ namespace FluidFlow.Tasks
         private async Task RunAndRemove(IActivity activity)
         {
             await activity.Run();
-            DequeueActivity();
+            DequeueActivity(); // TODO: not sure how to test this...
         }
 
         private void DequeueActivity()

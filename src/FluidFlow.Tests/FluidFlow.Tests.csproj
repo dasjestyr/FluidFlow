@@ -79,6 +79,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Activities\SpecificationActivityTests.cs" />
+    <Compile Include="Activities\WorkflowExecutorTests.cs" />
     <Compile Include="Serialization\BinaryBlobTaskStoreTests.cs" />
     <Compile Include="Serialization\BinarySerializerTests.cs" />
     <Compile Include="Specification\AndSpecificationTests.cs" />
@@ -87,10 +89,10 @@
     <Compile Include="Specification\OrSpecificationTests.cs" />
     <Compile Include="Specification\SpecificationHelper.cs" />
     <Compile Include="Specification\SpecificationTests.cs" />
-    <Compile Include="Tasks\WorkflowTests.cs" />
-    <Compile Include="Tasks\ParallelWorkTaskTests.cs" />
+    <Compile Include="Activities\WorkflowTests.cs" />
+    <Compile Include="Activities\ParallelWorkTaskTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tasks\WorkTaskTests.cs" />
+    <Compile Include="Activities\WorkTaskTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -52,18 +52,19 @@
     <Compile Include="Specification\NotSpecification.cs" />
     <Compile Include="Specification\OrSpecification.cs" />
     <Compile Include="Specification\Specification.cs" />
-    <Compile Include="Tasks\WorkflowExecutor.cs" />
-    <Compile Include="Tasks\IDelayedActivity.cs" />
-    <Compile Include="Tasks\IServiceQueue.cs" />
-    <Compile Include="Tasks\IStateMonitor.cs" />
-    <Compile Include="Tasks\IActivity.cs" />
-    <Compile Include="Tasks\ParallelActivity.cs" />
-    <Compile Include="Tasks\ActivityState.cs" />
-    <Compile Include="Tasks\ActivityType.cs" />
-    <Compile Include="Tasks\SpecificationActivity.cs" />
-    <Compile Include="Tasks\Workflow.cs" />
+    <Compile Include="Activities\IWorkflowActivity.cs" />
+    <Compile Include="Activities\WorkflowExecutor.cs" />
+    <Compile Include="Activities\IDelayedActivity.cs" />
+    <Compile Include="Activities\IServiceQueue.cs" />
+    <Compile Include="Activities\IStateMonitor.cs" />
+    <Compile Include="Activities\IActivity.cs" />
+    <Compile Include="Activities\ParallelActivity.cs" />
+    <Compile Include="Activities\ActivityState.cs" />
+    <Compile Include="Activities\ActivityType.cs" />
+    <Compile Include="Activities\SpecificationActivity.cs" />
+    <Compile Include="Activities\Workflow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tasks\Activity.cs" />
+    <Compile Include="Activities\Activity.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
