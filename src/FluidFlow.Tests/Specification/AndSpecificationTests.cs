@@ -9,6 +9,21 @@ namespace FluidFlow.Tests.Specification
     public class AndSpecificationTests
     {
         [Fact]
+        public void IsSatisifiedBy_NullTarget_Throws()
+        {
+            // arrange
+            // arrange
+            var left = SpecificationHelper.GetSpec(true);
+            var right = SpecificationHelper.GetSpec(true);
+            var spec = new AndSpecification<object>(left, right);
+
+            // act
+            
+            // assert
+            Assert.Throws<ArgumentNullException>(() => spec.IsSatisfiedBy(null));
+        }
+
+        [Fact]
         public void IsSatisfiedBy_TrueTrue_IsTrue()
         {
             // arrange

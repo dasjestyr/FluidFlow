@@ -11,8 +11,15 @@ namespace FluidFlow.Activities
     public class Workflow : Activity, IWorkflowActivity
     {
         private readonly ITaskStateStore _taskStore;
-        private readonly WorkflowExecutor _executor;
-        private IActivity _lastActivity;
+        private readonly IWorkflowExecutor _executor;
+
+        /// <summary>
+        /// Gets or sets the last activity.
+        /// </summary>
+        /// <value>
+        /// The last activity.
+        /// </value>
+        public IActivity LastActivity { get; set; }
 
         /// <summary>
         /// Gets the activity queue. 
@@ -20,7 +27,7 @@ namespace FluidFlow.Activities
         /// <value>
         /// The activity queue.
         /// </value>
-        public Queue<IActivity> ActivityQueue { get; private set; } = new Queue<IActivity>();
+        public Queue<IActivity> ActivityQueue { get; internal set; } = new Queue<IActivity>();
 
         /// <summary>
         /// Initializes an instance of <see cref="Workflow" />
@@ -37,6 +44,22 @@ namespace FluidFlow.Activities
 
             _taskStore = taskStore;
             _executor = new WorkflowExecutor(this, serviceQueue);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Workflow"/> class. Used for testing.
+        /// </summary>
+        /// <param name="serviceQueue">The service queue.</param>
+        /// <param name="taskStore">The task store.</param>
+        /// <param name="executor">The executor.</param>
+        /// <exception cref="ArgumentNullException"></exception>
+        internal Workflow(IServiceQueue serviceQueue, ITaskStateStore taskStore, IWorkflowExecutor executor)
+            : this(serviceQueue, taskStore)
+        {
+            if(executor == null)
+                throw new ArgumentNullException(nameof(executor));
+
+            _executor = executor;
         }
 
         /// <summary>
@@ -126,7 +149,7 @@ namespace FluidFlow.Activities
         /// <returns></returns>
         public Workflow Condition<T>(ISpecification<T> specification, IActivity onSuccess, IActivity onFailure = null)
         {
-            var specActivity = new SpecificationActivity<T>(specification, _lastActivity, onSuccess, onFailure);
+            var specActivity = new SpecificationActivity<T>(specification, LastActivity, onSuccess, onFailure);
             ActivityQueue.Enqueue(specActivity);
 
             return this;
@@ -138,20 +161,24 @@ namespace FluidFlow.Activities
         /// <returns></returns>
         public override async Task OnRun()
         {
+            if(!ActivityQueue.Any())
+                throw new InvalidOperationException("Nothing in the queue!");
+
             while (ActivityQueue.Count > 0)
             {
                 if (State == ActivityState.Delayed)
-                {
-                    await SaveState();
                     break;
-                }
-
-                _lastActivity = ActivityQueue.Peek();
+                
+                LastActivity = ActivityQueue.Peek();
                 await _executor.Execute();
             }
         }
 
-        private async Task SaveState()
+        /// <summary>
+        /// Saves the state.
+        /// </summary>
+        /// <returns></returns>
+        public async Task SaveState()
         {
             await _taskStore.Save(this);
         }

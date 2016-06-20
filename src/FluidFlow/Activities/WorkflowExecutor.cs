@@ -4,8 +4,18 @@ using System.Threading.Tasks;
 
 namespace FluidFlow.Activities
 {
+    public interface IWorkflowExecutor
+    {
+        /// <summary>
+        /// Executes this instance.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException">activity</exception>
+        Task Execute();
+    }
+
     [Serializable]
-    internal class WorkflowExecutor
+    internal class WorkflowExecutor : IWorkflowExecutor
     {
         private readonly IWorkflowActivity _parentActivity;
         private readonly IServiceQueue _serviceQueue;
@@ -53,6 +63,7 @@ namespace FluidFlow.Activities
                 case ActivityType.Delayed:
                     _serviceQueue.AddTask(activity as IDelayedActivity);
                     _parentActivity.State = ActivityState.Delayed;
+                    _parentActivity.SaveState();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("activity", $"Unknown task type {activity.Type}");

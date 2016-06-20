@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using FluidFlow.Activities;
 using FluidFlow.Serialization;
+using FluidFlow.Specification;
 using Moq;
 using Xunit;
 
@@ -12,14 +15,14 @@ namespace FluidFlow.Tests.Activities
     public class WorkflowTests
     {
         private readonly Mock<ITaskStateStore> _store;
-        private readonly Mock<IServiceQueue> _serviceMonitor;
+        private readonly Mock<IServiceQueue> _serviceQueue;
         private readonly Workflow _workflow;
 
         public WorkflowTests()
         {
-            _serviceMonitor = new Mock<IServiceQueue>();
+            _serviceQueue = new Mock<IServiceQueue>();
             _store = new Mock<ITaskStateStore>();
-            _workflow = new Workflow(_serviceMonitor.Object, _store.Object);
+            _workflow = new Workflow(_serviceQueue.Object, _store.Object);
         }
 
         [Fact]
@@ -28,8 +31,8 @@ namespace FluidFlow.Tests.Activities
             // arrange
 
             // act
-            var wf1 = new Workflow(_serviceMonitor.Object, _store.Object);
-            var wf2 = new Workflow(_serviceMonitor.Object, _store.Object);
+            var wf1 = new Workflow(_serviceQueue.Object, _store.Object);
+            var wf2 = new Workflow(_serviceQueue.Object, _store.Object);
 
             // assert
             Assert.NotEqual(wf1.Id, wf2.Id);
@@ -54,7 +57,32 @@ namespace FluidFlow.Tests.Activities
             // act
 
             // assert
-            Assert.Throws<ArgumentNullException>(() => new Workflow(_serviceMonitor.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new Workflow(_serviceQueue.Object, null));
+        }
+
+        [Fact]
+        public void Ctor_NullExecutor_Throws()
+        {
+            // arrange
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new Workflow(_serviceQueue.Object, _store.Object, null));
+        }
+
+        [Fact]
+        public void Ctor_WithCustomExecutor_Initializes()
+        {
+            // arrange
+            var executor = new Mock<IWorkflowExecutor>();
+
+            // act
+            var wf = new Workflow(_serviceQueue.Object, _store.Object, executor.Object);
+
+            // assert
+            Assert.NotNull(wf);
+            Assert.True(true);
         }
 
         [Fact]
@@ -192,6 +220,99 @@ namespace FluidFlow.Tests.Activities
 
             // assert
             Assert.Throws<InvalidOperationException>(() => _workflow.And(task));
+        }
+
+        [Fact]
+        public void Condition_ValidSpecification_IsAdded()
+        {
+            // arrange
+            var spec = new Mock<ISpecification<int>>();
+            var activity = new Mock<IActivity>();
+            activity.Setup(m => m.State).Returns(ActivityState.Completed);
+            activity.SetupGet(m => m.Result).Returns(1);
+
+            var workflow = new Workflow(_serviceQueue.Object, _store.Object);
+            workflow.LastActivity = activity.Object;
+            
+            // act
+            workflow.Condition(spec.Object, activity.Object);
+
+            // assert
+            Assert.True(workflow.ActivityQueue.Last() is SpecificationActivity<int>);
+        }
+
+        [Fact]
+        public async void SaveState_StoreIsCalled()
+        {
+            // arrange
+            var store = new Mock<ITaskStateStore>();
+            store.Setup(m => m.Save(It.IsAny<IActivity>())).Returns(Task.CompletedTask);
+            var workflow = new Workflow(_serviceQueue.Object, store.Object);
+            
+            // act
+            await workflow.SaveState();
+
+            // assert
+            store.Verify(m => m.Save(It.IsAny<IActivity>()), Times.Once);
+        }
+
+        [Fact]
+        public async void OnRun_EmptyQueue_Throws()
+        {
+            // arrange
+            var workFlow = new Workflow(_serviceQueue.Object, _store.Object);
+
+            // act
+            
+            // assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => workFlow.OnRun());
+        }
+
+        [Fact]
+        public async void OnRun_DelayedActivity_CausesShortCircuit()
+        {
+            // arrange
+            var executor = new Mock<IWorkflowExecutor>();
+            executor.Setup(m => m.Execute()).Returns(Task.CompletedTask);
+
+            var activity1 = new Mock<IActivity>();
+            activity1.SetupGet(m => m.Type).Returns(ActivityType.SychronizedTask);
+            activity1.SetupGet(m => m.State).Returns(ActivityState.NotStarted);
+            activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
+
+            var workflow = new Workflow(_serviceQueue.Object, _store.Object);
+            workflow.ActivityQueue = GetQueue(activity1.Object);
+            workflow.State = ActivityState.Delayed;
+            workflow.Do(activity1.Object);
+
+            // act
+            // call this instead of Run because we've overridden the state
+            await workflow.OnRun();
+
+            // assert
+            executor.Verify(m => m.Execute(), Times.Never);
+        }
+
+        public Queue<IActivity> GetQueue(params IActivity[] activities)
+        {
+            return new Queue<IActivity>(activities);
+        }
+
+        [Fact]
+        public async void OnRun_ActivityExecuted_IsUpdated()
+        {
+            // arrange
+            var act1 = new Mock<IActivity>();
+            act1.Setup(m => m.Run()).Returns(Task.CompletedTask);
+
+            var wf = new Workflow(_serviceQueue.Object, _store.Object);
+            wf.ActivityQueue = GetQueue(act1.Object, act1.Object);
+
+            // act
+            await wf.OnRun();
+
+            // assert
+            Assert.True(wf.LastActivity.Equals(act1.Object));
         }
 
         private static IActivity GetWorkTask()

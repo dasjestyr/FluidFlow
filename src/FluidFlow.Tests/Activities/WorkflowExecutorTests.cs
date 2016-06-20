@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluidFlow.Activities;
+using FluidFlow.Serialization;
 using Moq;
 using Xunit;
 
@@ -139,7 +140,30 @@ namespace FluidFlow.Tests.Activities
             serviceQueue.Verify(m => m.AddTask(It.IsAny<IDelayedActivity>()), Times.Once);
         }
 
-        
+        [Fact]
+        public async void Execute_Deylayed_CallsSaveState()
+        {
+            // arrange
+            var delayedTask = new Mock<IDelayedActivity>();
+            delayedTask.SetupGet(m => m.State).Returns(ActivityState.NotStarted);
+            delayedTask.SetupGet(m => m.Type).Returns(ActivityType.Delayed);
+
+            var q = GetActivityQueue(delayedTask.Object);
+            _parentActivity.SetupGet(m => m.ActivityQueue).Returns(q);
+            _parentActivity.Setup(m => m.SaveState()).Returns(Task.CompletedTask);
+
+            var serviceQueue = new Mock<IServiceQueue>();
+            serviceQueue.Setup(m => m.AddTask(It.IsAny<IDelayedActivity>()));
+
+            var executor = new WorkflowExecutor(_parentActivity.Object, serviceQueue.Object);
+
+            // act
+            await executor.Execute();
+
+            // assert
+            _parentActivity.Verify(m => m.SaveState(), Times.Once);
+        }
+
 
         private static Queue<IActivity> GetActivityQueue(IActivity activity)
         {
