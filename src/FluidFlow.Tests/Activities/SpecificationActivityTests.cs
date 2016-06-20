@@ -220,7 +220,7 @@ namespace FluidFlow.Tests.Activities
             var completedActivity = new Mock<IActivity>();
             completedActivity.SetupGet(m => m.Result).Returns("Hello World");
             completedActivity.SetupGet(m => m.State).Returns(ActivityState.Completed);
-
+            
             var specification = new Mock<ISpecification<string>>();
             specification.Setup(m => m.IsSatisfiedBy(It.IsAny<string>())).Returns(true);
 

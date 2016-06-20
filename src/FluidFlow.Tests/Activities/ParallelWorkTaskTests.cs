@@ -22,6 +22,7 @@ namespace FluidFlow.Tests.Activities
 
             // assert
             Assert.NotNull(tasks);
+            Assert.Null(task.Result);
         }
 
         [Fact]

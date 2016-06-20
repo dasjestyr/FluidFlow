@@ -18,7 +18,7 @@ namespace FluidFlow.Activities
         /// The unique id of this task.
         /// </summary>
         public Guid Id { get; }
-
+        
         /// <summary>
         /// The type of tasks this instance represents.
         /// </summary>
