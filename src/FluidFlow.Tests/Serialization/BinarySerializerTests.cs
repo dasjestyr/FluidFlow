@@ -13,7 +13,7 @@ namespace FluidFlow.Tests.Serialization
         {
             // arrange
             var serializer = new BinarySerializer();
-            var task = new FakeWorkTask();
+            var task = new FakeActivity();
 
             // act
             var blob = serializer.Serialize(task) as byte[];
@@ -27,11 +27,11 @@ namespace FluidFlow.Tests.Serialization
         {
             // arrange
             var serializer = new BinarySerializer();
-            var task = new FakeWorkTask();
+            var task = new FakeActivity();
             var blob = serializer.Serialize(task) as byte[];
 
             // act
-            var obj = serializer.Deserialize<FakeWorkTask>(blob);
+            var obj = serializer.Deserialize<FakeActivity>(blob);
 
             // assert
             Assert.Equal(task.Id, obj.Id);

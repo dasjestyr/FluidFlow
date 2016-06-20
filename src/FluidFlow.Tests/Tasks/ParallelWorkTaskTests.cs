@@ -15,7 +15,7 @@ namespace FluidFlow.Tests.Tasks
         public void Ctor_TasksNotNull()
         {
             // arrange
-            var task = new ParallelWorkTask();
+            var task = new ParallelActivity();
 
             // act
             var tasks = task.Tasks;
@@ -28,8 +28,8 @@ namespace FluidFlow.Tests.Tasks
         public void Add_DuplicateTask_IsIgnored()
         {
             // arrange
-            var task = new FakeWorkTask();
-            var pTask = new ParallelWorkTask();
+            var task = new FakeActivity();
+            var pTask = new ParallelActivity();
 
             // act
             pTask.Add(task);
@@ -43,7 +43,7 @@ namespace FluidFlow.Tests.Tasks
         public void Add_NullTask_Throws()
         {
             // arrange
-            var task = new ParallelWorkTask();
+            var task = new ParallelActivity();
 
             // act
             Assert.Throws<ArgumentNullException>(() => task.Add(null));
@@ -53,9 +53,9 @@ namespace FluidFlow.Tests.Tasks
         public void Add_ValidTask_Added()
         {
             // arrange
-            var task1Mock = new FakeWorkTask();
-            var task2Mock = new FakeWorkTask();
-            var pTask = new ParallelWorkTask();
+            var task1Mock = new FakeActivity();
+            var task2Mock = new FakeActivity();
+            var pTask = new ParallelActivity();
 
             // act
             pTask.Add(task1Mock);
@@ -70,8 +70,8 @@ namespace FluidFlow.Tests.Tasks
         public async void Run_AlreadyStarted_Throws()
         {
             // arrange
-            var pTask = new ParallelWorkTask();
-            pTask.State = TaskState.Executing;
+            var pTask = new ParallelActivity();
+            pTask.State = ActivityState.Executing;
 
             // act
 
@@ -83,15 +83,15 @@ namespace FluidFlow.Tests.Tasks
         public async void Run_AllTasksRun()
         {
             // arrange
-            var pTask = new ParallelWorkTask();
+            var pTask = new ParallelActivity();
 
-            var task1 = new Mock<IWorkTask>();
+            var task1 = new Mock<IActivity>();
             task1.SetupAllProperties();
             task1.Setup(m => m.Run()).Returns(Task.FromResult(""));
             task1.SetupGet(m => m.Id).Returns(Guid.NewGuid());
             pTask.Add(task1.Object);
 
-            var task2 = new Mock<IWorkTask>();
+            var task2 = new Mock<IActivity>();
             task2.SetupAllProperties();
             task2.Setup(m => m.Run()).Returns(Task.FromResult("")); 
             task2.SetupGet(m => m.Id).Returns(Guid.NewGuid());
@@ -107,7 +107,7 @@ namespace FluidFlow.Tests.Tasks
     }
 
     [Serializable]
-    public class FakeWorkTask : WorkTask
+    public class FakeActivity : Activity
     {
         public override Task OnRun()
         {

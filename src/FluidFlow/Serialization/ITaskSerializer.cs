@@ -9,7 +9,7 @@ namespace FluidFlow.Serialization
         /// </summary>
         /// <param name="task">The task.</param>
         /// <returns></returns>
-        object Serialize(IWorkTask task);
+        object Serialize(IActivity task);
 
         /// <summary>
         /// Deserializes the specified to the specified type.
@@ -17,6 +17,6 @@ namespace FluidFlow.Serialization
         /// <typeparam name="T"></typeparam>
         /// <param name="blob">The BLOB.</param>
         /// <returns></returns>
-        T Deserialize<T>(byte[] blob) where T : IWorkTask;
+        T Deserialize<T>(byte[] blob) where T : IActivity;
     }
 }

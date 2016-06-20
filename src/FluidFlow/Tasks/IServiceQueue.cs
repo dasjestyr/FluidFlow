@@ -6,6 +6,6 @@
         /// Adds the task to the service queue.
         /// </summary>
         /// <param name="task"></param>
-        void AddTask(IDelayedWorkTask task);
+        void AddTask(IDelayedActivity task);
     }
 }

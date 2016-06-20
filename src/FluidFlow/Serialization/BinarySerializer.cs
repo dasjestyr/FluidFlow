@@ -6,7 +6,7 @@ namespace FluidFlow.Serialization
 {
     public class BinarySerializer : ITaskSerializer
     {
-        public object Serialize(IWorkTask obj)
+        public object Serialize(IActivity obj)
         {
             var formatter = new BinaryFormatter();
             byte[] blob;
@@ -20,7 +20,7 @@ namespace FluidFlow.Serialization
         }
 
         public T Deserialize<T>(byte[] blob)
-            where T : IWorkTask
+            where T : IActivity
         {
             var formatter = new BinaryFormatter();
             using (var s = new MemoryStream(blob))

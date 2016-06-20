@@ -1,6 +1,6 @@
 ﻿namespace FluidFlow.Tasks
 {
-    public interface IDelayedWorkTask : IWorkTask
+    public interface IDelayedActivity : IActivity
     {
         /// <summary>
         /// The state monitor.

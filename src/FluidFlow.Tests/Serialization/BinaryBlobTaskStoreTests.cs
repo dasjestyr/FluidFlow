@@ -15,15 +15,15 @@ namespace FluidFlow.Tests.Serialization
         {
             // arrange
             var serializerMock = new Mock<ITaskSerializer>();
-            serializerMock.Setup(m => m.Serialize(It.IsAny<IWorkTask>()));
+            serializerMock.Setup(m => m.Serialize(It.IsAny<IActivity>()));
             var store = new BinaryBlobTaskStore(serializerMock.Object);
-            var task = new Mock<IWorkTask>();
+            var task = new Mock<IActivity>();
 
             // act
             await store.Save(task.Object);
 
             // assert
-            serializerMock.Verify(m => m.Serialize(It.IsAny<IWorkTask>()), Times.Once);
+            serializerMock.Verify(m => m.Serialize(It.IsAny<IActivity>()), Times.Once);
         }
 
         [Fact]
@@ -31,14 +31,14 @@ namespace FluidFlow.Tests.Serialization
         {
             // arrange
             var serializerMock = new Mock<ITaskSerializer>();
-            serializerMock.Setup(m => m.Deserialize<IWorkTask>(It.IsAny<byte[]>()));
+            serializerMock.Setup(m => m.Deserialize<IActivity>(It.IsAny<byte[]>()));
             var store = new BinaryBlobTaskStore(serializerMock.Object);
             
             // act
-            await store.Get<IWorkTask>(Guid.NewGuid());
+            await store.Get<IActivity>(Guid.NewGuid());
 
             // assert
-            serializerMock.Verify(m => m.Deserialize<IWorkTask>(It.IsAny<byte[]>()), Times.Once);
+            serializerMock.Verify(m => m.Deserialize<IActivity>(It.IsAny<byte[]>()), Times.Once);
         }
     }
 }

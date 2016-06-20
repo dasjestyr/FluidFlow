@@ -12,8 +12,8 @@ namespace FluidFlow.Tests.Tasks
         public void Ctor_NewIdGenerated()
         {
             // arrange
-            var task1Mock = new Mock<WorkTask>();
-            var task2Mock = new Mock<WorkTask>();
+            var task1Mock = new Mock<Activity>();
+            var task2Mock = new Mock<Activity>();
 
             // act
 
@@ -27,10 +27,10 @@ namespace FluidFlow.Tests.Tasks
             // arrange
 
             // act
-            var task = new Mock<WorkTask>();
+            var task = new Mock<Activity>();
 
             // assert
-            Assert.Equal(TaskState.NotStarted, task.Object.State);
+            Assert.Equal(ActivityState.NotStarted, task.Object.State);
         }
     }
 }

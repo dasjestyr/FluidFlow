@@ -11,7 +11,7 @@ namespace FluidFlow.Serialization
         /// </summary>
         /// <param name="task">The task.</param>
         /// <returns></returns>
-        Task Save(IWorkTask task);
+        Task Save(IActivity task);
 
         /// <summary>
         /// Retrieves the serialized task from the data store using the provided ID
@@ -19,6 +19,6 @@ namespace FluidFlow.Serialization
         /// <typeparam name="T"></typeparam>
         /// <param name="id">The identifier.</param>
         /// <returns></returns>
-        Task<T> Get<T>(Guid id) where T : IWorkTask;
+        Task<T> Get<T>(Guid id) where T : IActivity;
     }
 }

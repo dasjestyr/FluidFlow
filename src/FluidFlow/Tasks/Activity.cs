@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace FluidFlow.Tasks
 {
     [Serializable]
-    public abstract class WorkTask : IWorkTask
+    public abstract class Activity : IActivity
     {
         /// <summary>
         /// Gets the state of the task.
@@ -12,7 +12,7 @@ namespace FluidFlow.Tasks
         /// <value>
         /// The state of the task.
         /// </value>
-        public TaskState State { get; internal set; }
+        public ActivityState State { get; set; }
 
         /// <summary>
         /// The unique id of this task.
@@ -22,14 +22,22 @@ namespace FluidFlow.Tasks
         /// <summary>
         /// The type of tasks this instance represents.
         /// </summary>
-        public TaskType Type { get; set; }
+        public ActivityType Type { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WorkTask"/> class.
+        /// Gets the result.
         /// </summary>
-        protected WorkTask()
+        /// <value>
+        /// The result.
+        /// </value>
+        public object Result { get; private set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Activity"/> class.
+        /// </summary>
+        protected Activity()
         {
-            State = TaskState.NotStarted;
+            State = ActivityState.NotStarted;
             Id = Guid.NewGuid();
         }
 
@@ -43,12 +51,12 @@ namespace FluidFlow.Tasks
         /// Executes the task.
         /// </summary>
         /// <returns></returns>
-        public async Task Run()
+        public virtual async Task Run()
         {
-            if (State != TaskState.NotStarted)
-                throw new InvalidOperationException("Cannot start a tasks that has already by started.");
+            if (State != ActivityState.NotStarted)
+                throw new InvalidOperationException("Cannot start a task that has already been started");
 
-            State = TaskState.Executing;
+            State = ActivityState.Executing;
             await OnRun();
         }
     }

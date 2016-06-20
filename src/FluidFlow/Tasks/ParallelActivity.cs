@@ -5,28 +5,28 @@ using System.Threading.Tasks;
 
 namespace FluidFlow.Tasks
 {
-    public class ParallelWorkTask : WorkTask
+    public class ParallelActivity : Activity
     {
-        private readonly List<IWorkTask> _tasks;
+        private readonly List<IActivity> _tasks;
 
         /// <summary>
         /// Read-only collection of all tasks to be executed.
         /// </summary>
-        public IReadOnlyCollection<IWorkTask> Tasks => _tasks;
+        public IReadOnlyCollection<IActivity> Tasks => _tasks;
 
         /// <summary>
-        /// Initializes and instance of <see cref="ParallelWorkTask"/>
+        /// Initializes and instance of <see cref="ParallelActivity"/>
         /// </summary>
-        public ParallelWorkTask()
+        public ParallelActivity()
         {
-            _tasks = new List<IWorkTask>();
+            _tasks = new List<IActivity>();
         }
 
         /// <summary>
         /// Add a tasks to the collection. Duplicate tasks will be ignored.
         /// </summary>
         /// <param name="task"></param>
-        public void Add(IWorkTask task)
+        public void Add(IActivity task)
         {
             if(task == null)
                 throw new ArgumentNullException(nameof(task));
@@ -34,7 +34,7 @@ namespace FluidFlow.Tasks
             if (_tasks.Any(t => t.Id == task.Id))
                 return;
 
-            task.Type = TaskType.Parallel;
+            task.Type = ActivityType.Parallel;
             _tasks.Add(task);
         }
 

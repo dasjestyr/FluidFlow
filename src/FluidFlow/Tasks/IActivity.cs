@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace FluidFlow.Tasks
 {
-    public interface IWorkTask
+    public interface IActivity
     {
         /// <summary>
         /// The unique id of this task.
@@ -16,12 +16,20 @@ namespace FluidFlow.Tasks
         /// <value>
         /// The state of the task.
         /// </value>
-        TaskState State { get; }
+        ActivityState State { get; set; }
 
         /// <summary>
         /// The type of tasks this instance represents.
         /// </summary>
-        TaskType Type { get; set; }
+        ActivityType Type { get; set; }
+
+        /// <summary>
+        /// Gets the result.
+        /// </summary>
+        /// <value>
+        /// The result.
+        /// </value>
+        object Result { get; }
 
         /// <summary>
         /// Executes the task.

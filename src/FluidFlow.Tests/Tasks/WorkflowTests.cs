@@ -36,6 +36,28 @@ namespace FluidFlow.Tests.Tasks
         }
 
         [Fact]
+        public void Ctor_NullServiceQueue_Throws()
+        {
+            // arrange
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new Workflow(null, _store.Object));
+        }
+
+        [Fact]
+        public void Ctor_NullStore_Throws()
+        {
+            // arrange
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new Workflow(_serviceMonitor.Object, null));
+        }
+
+        [Fact]
         public void Do_SetsTaskType()
         {
             // arrange
@@ -45,7 +67,7 @@ namespace FluidFlow.Tests.Tasks
             _workflow.Do(task);
 
             // assert
-            Assert.Equal(TaskType.SychronizedTask, task.Type);
+            Assert.Equal(ActivityType.SychronizedTask, task.Type);
         }
 
         [Fact]
@@ -53,7 +75,7 @@ namespace FluidFlow.Tests.Tasks
         {
             // arrange
             var id = Guid.NewGuid();
-            var task = new Mock<IWorkTask>();
+            var task = new Mock<IActivity>();
             task.Setup(m => m.Id).Returns(id);
 
             // act
@@ -74,7 +96,7 @@ namespace FluidFlow.Tests.Tasks
             _workflow.WaitFor(task);
 
             // assert
-            Assert.Equal(TaskType.Delayed, task.Type);
+            Assert.Equal(ActivityType.Delayed, task.Type);
         }
 
         [Fact]
@@ -82,7 +104,7 @@ namespace FluidFlow.Tests.Tasks
         {
             // arrange
             var id = Guid.NewGuid();
-            var taskMock = new Mock<IWorkTask>();
+            var taskMock = new Mock<IActivity>();
             taskMock.Setup(m => m.Id).Returns(id);
 
             // act
@@ -103,7 +125,7 @@ namespace FluidFlow.Tests.Tasks
             _workflow.FireAndForget(task);
 
             // assert
-            Assert.Equal(TaskType.FireAndForget, task.Type);
+            Assert.Equal(ActivityType.FireAndForget, task.Type);
         }
 
         [Fact]
@@ -111,7 +133,7 @@ namespace FluidFlow.Tests.Tasks
         {
             // arrange
             var id = Guid.NewGuid();
-            var taskMock = new Mock<IWorkTask>();
+            var taskMock = new Mock<IActivity>();
             taskMock.Setup(m => m.Id).Returns(id);
 
             // act
@@ -135,7 +157,7 @@ namespace FluidFlow.Tests.Tasks
                 .And(task2);
 
             // assert
-            var last = _workflow.PendingTasks.LastOrDefault() as ParallelWorkTask;
+            var last = _workflow.PendingActivities.LastOrDefault() as ParallelActivity;
             Assert.NotNull(last);
         }
 
@@ -153,7 +175,7 @@ namespace FluidFlow.Tests.Tasks
                 .And(task2)
                 .And(task3);
 
-            var last = _workflow.PendingTasks.LastOrDefault() as ParallelWorkTask;
+            var last = _workflow.PendingActivities.LastOrDefault() as ParallelActivity;
 
             // assert
             Assert.NotNull(last);
@@ -172,22 +194,22 @@ namespace FluidFlow.Tests.Tasks
             Assert.Throws<InvalidOperationException>(() => _workflow.And(task));
         }
 
-        private static IWorkTask GetWorkTask()
+        private static IActivity GetWorkTask()
         {
-            var taskMock = new Mock<IWorkTask>();
+            var taskMock = new Mock<IActivity>();
             taskMock.SetupAllProperties();
             taskMock.Setup(m => m.Id).Returns(Guid.NewGuid());
             return taskMock.Object;
         }
 
         private static bool TaskIsFound(
-            Func<IWorkTask, Workflow> func,
-            IWorkTask task,
+            Func<IActivity, Workflow> func,
+            IActivity task,
             Workflow wf,
             Guid id)
         {
             func(task);
-            var addedTask = wf.PendingTasks.Any(t => t.Id == id);
+            var addedTask = wf.PendingActivities.Any(t => t.Id == id);
             return addedTask;
         }
     }

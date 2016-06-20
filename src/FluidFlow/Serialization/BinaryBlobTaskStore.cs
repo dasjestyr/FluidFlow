@@ -18,7 +18,7 @@ namespace FluidFlow.Serialization
         /// </summary>
         /// <param name="task">The task.</param>
         /// <returns></returns>
-        public async Task Save(IWorkTask task)
+        public async Task Save(IActivity task)
         {
             var blob = (byte[]) _serializer.Serialize(task);
             // TODO: store
@@ -32,7 +32,7 @@ namespace FluidFlow.Serialization
         /// <typeparam name="T"></typeparam>
         /// <param name="id">The identifier.</param>
         /// <returns></returns>
-        public async Task<T> Get<T>(Guid id) where T : IWorkTask
+        public async Task<T> Get<T>(Guid id) where T : IActivity
         {
             // TODO: get blob
             var blob = new byte[0];

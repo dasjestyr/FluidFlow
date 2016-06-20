@@ -1,6 +1,6 @@
 ﻿namespace FluidFlow.Tasks
 {
-    public enum TaskState
+    public enum ActivityState
     {
         /// <summary>
         /// The workflow has not started.

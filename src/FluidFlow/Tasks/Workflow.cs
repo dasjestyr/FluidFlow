@@ -3,36 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluidFlow.Serialization;
+using FluidFlow.Specification;
 
 namespace FluidFlow.Tasks
 {
     [Serializable]
-    public class Workflow : WorkTask
+    public class Workflow : Activity, IWorkflowActivity
     {
-        private readonly IServiceQueue _stateMonitor;
-        private readonly ITaskStateStore _store;
-        private readonly List<IWorkTask> _pendingTasks = new List<IWorkTask>();
+        private readonly ITaskStateStore _taskStore;
+        private IActivity _lastActivity;
+        private readonly WorkflowExecutor _executor;
         
-        /// <summary>
-        /// A read-only collection of all tasks in this workflow.
-        /// </summary>
-        public IReadOnlyCollection<IWorkTask> PendingTasks => _pendingTasks;
+        public Queue<IActivity> ActivityQueue { get; private set; } = new Queue<IActivity>();
 
         /// <summary>
         /// Initializes an instance of <see cref="Workflow" />
         /// </summary>
-        /// <param name="stateMonitor">The state monitor.</param>
-        /// <param name="store">The store.</param>
-        public Workflow(IServiceQueue stateMonitor, ITaskStateStore store)
+        /// <param name="serviceQueue">The state monitor.</param>
+        /// <param name="taskStore">The store.</param>
+        public Workflow(IServiceQueue serviceQueue, ITaskStateStore taskStore)
         {
-            if(stateMonitor == null)
-                throw new ArgumentNullException(nameof(stateMonitor));
+            if(serviceQueue == null)
+                throw new ArgumentNullException(nameof(serviceQueue));
 
-            if(store == null)
-                throw new ArgumentNullException(nameof(store));
+            if(taskStore == null)
+                throw new ArgumentNullException(nameof(taskStore));
 
-            _stateMonitor = stateMonitor;
-            _store = store;
+            _taskStore = taskStore;
+            _executor = new WorkflowExecutor(this, serviceQueue);
         }
 
         /// <summary>
@@ -40,10 +38,10 @@ namespace FluidFlow.Tasks
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public Workflow Do(IWorkTask task)
+        public Workflow Do(IActivity task)
         {
-            task.Type = TaskType.SychronizedTask;
-            _pendingTasks.Add(task);
+            task.Type = ActivityType.SychronizedTask;
+            ActivityQueue.Enqueue(task);
 
             return this;
         }
@@ -53,10 +51,10 @@ namespace FluidFlow.Tasks
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public Workflow WaitFor(IWorkTask task)
+        public Workflow WaitFor(IActivity task)
         {
-            task.Type = TaskType.Delayed;
-            _pendingTasks.Add(task);
+            task.Type = ActivityType.Delayed;
+            ActivityQueue.Enqueue(task);
 
             return this;
         }
@@ -66,10 +64,10 @@ namespace FluidFlow.Tasks
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public Workflow FireAndForget(IWorkTask task)
+        public Workflow FireAndForget(IActivity task)
         {
-            task.Type = TaskType.FireAndForget;
-            _pendingTasks.Add(task);
+            task.Type = ActivityType.FireAndForget;
+            ActivityQueue.Enqueue(task);
 
             return this;
         }
@@ -79,72 +77,76 @@ namespace FluidFlow.Tasks
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        public Workflow And(IWorkTask task)
+        public Workflow And(IActivity task)
         {
-            task.Type = TaskType.Parallel;
+            task.Type = ActivityType.Parallel;
 
-            var lastTask = _pendingTasks.LastOrDefault();
-            if(lastTask == null || lastTask.Type == TaskType.Delayed)
+            var asList = ActivityQueue.ToList();
+
+            var lastTask = asList.LastOrDefault();
+            if (lastTask == null || lastTask.Type == ActivityType.Delayed)
                 throw new InvalidOperationException("Cannot add a parallel task to a delayed task or an empty workflow");
-
-            var lastTaskIndex = _pendingTasks.IndexOf(lastTask);
-            var asParallelTask = lastTask as ParallelWorkTask;
-
+            
+            var lastTaskIndex = asList.IndexOf(lastTask);
+            var asParallelTask = lastTask as ParallelActivity;
+            
             // imake sure the last task is a parallel task and add this task to it
             if (asParallelTask == null)
             {
-                var parallelCollection = new ParallelWorkTask();
+                var parallelCollection = new ParallelActivity();
                 parallelCollection.Add(lastTask);
                 parallelCollection.Add(task);
 
-                _pendingTasks[lastTaskIndex] = parallelCollection;
+                asList[lastTaskIndex] = parallelCollection;
             }
             else
             {
                 asParallelTask.Add(task);
-                _pendingTasks[lastTaskIndex] = asParallelTask;
+                asList[lastTaskIndex] = asParallelTask;
             }
+
+            ActivityQueue = new Queue<IActivity>(asList);
 
             return this;
         }
 
+        /// <summary>
+        /// If the result of the previous activity satisifies the provided specification, run the provided activity.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="specification">The specification.</param>
+        /// <param name="runOnSuccess">The activity that will run if the specification is satisfied.</param>
+        /// <returns></returns>
+        public Workflow IfThen<T>(ISpecification<T> specification, IActivity runOnSuccess)
+        {
+            var specActivity = new SpecificationActivity<T>(specification, _lastActivity, runOnSuccess);
+            ActivityQueue.Enqueue(specActivity);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Executes the workflow.
+        /// </summary>
+        /// <returns></returns>
         public override async Task OnRun()
         {
-            foreach (var task in _pendingTasks)
+            while (ActivityQueue.Count > 0)
             {
-                if (State == TaskState.Delayed)
+                if (State == ActivityState.Delayed)
                 {
                     await SaveState();
                     break;
                 }
 
-                switch (task.Type)
-                {
-                    case TaskType.SychronizedTask:
-                    case TaskType.Parallel:
-                        State = TaskState.Executing;
-                        await task.Run();
-                        break;
-                    case TaskType.FireAndForget:
-                        State = TaskState.Executing;
-                        task.Run().Start();
-                        break;
-                    case TaskType.Delayed:
-                        _stateMonitor.AddTask(task as IDelayedWorkTask);
-                        State = TaskState.Delayed;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException("task", $"Unknown task type {task.Type}");
-                }
-
-                if (task.State == TaskState.Completed)
-                    _pendingTasks.Remove(task);
+                _lastActivity = ActivityQueue.Peek();
+                await _executor.Execute();
             }
         }
 
         private async Task SaveState()
         {
-            await _store.Save(this);
+            await _taskStore.Save(this);
         }
     }
 }
