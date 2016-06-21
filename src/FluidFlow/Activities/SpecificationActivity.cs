@@ -110,11 +110,11 @@ namespace FluidFlow.Activities
         /// <summary>
         /// Designates that we are currently building a success case
         /// </summary>
-        Success,
+        SuccessCase,
 
         /// <summary>
         /// Designates that we are currently building a failure case
         /// </summary>
-        Fail
+        FailCase
     }
 }

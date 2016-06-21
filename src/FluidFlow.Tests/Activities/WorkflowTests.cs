@@ -298,6 +298,78 @@ namespace FluidFlow.Tests.Activities
             Assert.True(wf.LastActivity.Equals(act1.Object));
         }
 
+        [Fact]
+        public async void If_SpecificationFail_ConditionalNotRun()
+        {
+            // arrange
+            var id1 = Guid.NewGuid();
+            var id2 = Guid.NewGuid();
+            var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
+            
+            var specification = new Mock<ISpecification<int>>();
+            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(false);
+
+            var activity1 = new Mock<IActivity>();
+            activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity1.SetupGet(m => m.Id).Returns(id1);
+            activity1.SetupGet(m => m.Result).Returns(1);
+            activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
+
+            var activity2 = new Mock<IActivity>();
+            activity2.SetupGet(m => m.Id).Returns(id2);
+            activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity2.SetupGet(m => m.Result).Returns(1);
+
+            wf.Do(activity1.Object)
+                .If(specification.Object)
+                    .Do(activity1.Object)
+                    .Do(activity2.Object)
+                    .EndIf()
+                .Do(activity1.Object);
+
+            // act
+            await wf.Run();
+
+            // assert
+            activity2.Verify(m => m.Run(), Times.Never);
+            activity1.Verify(m => m.Run(), Times.Exactly(2)); // wouldlikely be 3 if failed
+        }
+
+        [Fact]
+        public void If_AlreadyBuildingState_Throws()
+        {
+            // arrange
+            var id1 = Guid.NewGuid();
+            var id2 = Guid.NewGuid();
+            var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
+
+            var specification = new Mock<ISpecification<int>>();
+            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(false);
+
+            var activity1 = new Mock<IActivity>();
+            activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity1.SetupGet(m => m.Id).Returns(id1);
+            activity1.SetupGet(m => m.Result).Returns(1);
+            activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
+
+            var activity2 = new Mock<IActivity>();
+            activity2.SetupGet(m => m.Id).Returns(id2);
+            activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity2.SetupGet(m => m.Result).Returns(1);
+
+            // act
+
+            // assert
+            Assert.Throws<InvalidOperationException>(() => 
+                wf.Do(activity1.Object)
+                    .If(specification.Object)
+                        .Do(activity1.Object)
+                        .Do(activity2.Object)
+                    .If(specification.Object)
+                    .EndIf()
+                .Do(activity1.Object));
+        }
+
         private static IActivity GetWorkTask()
         {
             var taskMock = new Mock<IActivity>();

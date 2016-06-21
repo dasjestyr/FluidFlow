@@ -2,18 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using FluidFlow.Serialization;
 using FluidFlow.Specification;
 
 namespace FluidFlow.Activities
 {
+    internal enum WorkflowBuilderState
+    {
+        BuildingMainWorkflow,
+        BuildingConditionalWorkflow
+    }
+
     [Serializable]
     public class WorkflowActivity : Activity, IWorkflowActivity
     {
         private readonly ITaskStateStore _taskStore;
         private readonly IWorkflowExecutor _executor;
-        private SpecificationBuildState specBuildState;
+        private SpecificationBuildState _conditionalActivity;
+        private WorkflowBuilderState _builderState;
 
         /// <summary>
         /// Gets or sets the last activity.
@@ -72,18 +80,19 @@ namespace FluidFlow.Activities
         public WorkflowActivity Do(IActivity activity)
         {
             activity.Type = ActivityType.SychronizedTask;
-            WorkflowActivity wf;
-            if (specBuildState != null)
+            switch (_builderState)
             {
-                wf = ChainDo(activity);
+                case WorkflowBuilderState.BuildingMainWorkflow:
+                    ActivityQueue.Enqueue(activity);
+                    break;
+                case WorkflowBuilderState.BuildingConditionalWorkflow:
+                    ChainDo(activity);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                ActivityQueue.Enqueue(activity);
-                wf = this;
-            }
-
-            return wf;
+            
+            return this;
         }
 
         /// <summary>
@@ -94,18 +103,19 @@ namespace FluidFlow.Activities
         public WorkflowActivity WaitFor(IActivity activity)
         {
             activity.Type = ActivityType.Delayed;
-            WorkflowActivity wf;
-            if (specBuildState != null)
+            switch (_builderState)
             {
-                wf = ChainWaitFor(activity);
+                case WorkflowBuilderState.BuildingMainWorkflow:
+                    ActivityQueue.Enqueue(activity);
+                    break;
+                case WorkflowBuilderState.BuildingConditionalWorkflow:
+                    ChainWaitFor(activity);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                ActivityQueue.Enqueue(activity);
-                wf = this;
-            }
-
-            return wf;
+            
+            return this;
         }
 
         /// <summary>
@@ -116,64 +126,66 @@ namespace FluidFlow.Activities
         public WorkflowActivity FireAndForget(IActivity activity)
         {
             activity.Type = ActivityType.FireAndForget;
-            WorkflowActivity wf;
-            if (specBuildState != null)
+            switch (_builderState)
             {
-                wf = ChainFireAndForget(activity);
+                case WorkflowBuilderState.BuildingMainWorkflow:
+                    ActivityQueue.Enqueue(activity);
+                    break;
+                case WorkflowBuilderState.BuildingConditionalWorkflow:
+                    ChainFireAndForget(activity);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                ActivityQueue.Enqueue(activity);
-                wf = this;
-            }
-            
-            return wf;
+
+            return this;
         }
 
         /// <summary>
         /// Runs the specified task at the same time as the previous task.
         /// </summary>
-        /// <param name="task"></param>
+        /// <param name="activity"></param>
         /// <returns></returns>
-        public WorkflowActivity And(IActivity task)
+        public WorkflowActivity And(IActivity activity)
         {
-            task.Type = ActivityType.Parallel;
-            WorkflowActivity wf;
-            if (specBuildState != null)
+            activity.Type = ActivityType.Parallel;
+            switch (_builderState)
             {
-                wf = ChainAnd(task);
+                case WorkflowBuilderState.BuildingMainWorkflow:
+                    var asList = ActivityQueue.ToList();
+
+                    var lastTask = asList.LastOrDefault();
+                    if (lastTask == null || lastTask.Type == ActivityType.Delayed)
+                        throw new InvalidOperationException("Cannot add a parallel task to a delayed task or an empty workflow.");
+
+                    var lastTaskIndex = asList.IndexOf(lastTask);
+                    var asParallelTask = lastTask as ParallelActivity;
+
+                    // make sure the last task is a parallel task and add this task to it
+                    if (asParallelTask == null)
+                    {
+                        var parallelCollection = new ParallelActivity();
+                        parallelCollection.Add(lastTask);
+                        parallelCollection.Add(activity);
+
+                        asList[lastTaskIndex] = parallelCollection;
+                    }
+                    else
+                    {
+                        asParallelTask.Add(activity);
+                        asList[lastTaskIndex] = asParallelTask;
+                    }
+
+                    ActivityQueue = new Queue<IActivity>(asList);
+                    break;
+                case WorkflowBuilderState.BuildingConditionalWorkflow:
+                    ChainAnd(activity);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                var asList = ActivityQueue.ToList();
 
-                var lastTask = asList.LastOrDefault();
-                if (lastTask == null || lastTask.Type == ActivityType.Delayed)
-                    throw new InvalidOperationException("Cannot add a parallel task to a delayed task or an empty workflow.");
-
-                var lastTaskIndex = asList.IndexOf(lastTask);
-                var asParallelTask = lastTask as ParallelActivity;
-
-                // make sure the last task is a parallel task and add this task to it
-                if (asParallelTask == null)
-                {
-                    var parallelCollection = new ParallelActivity();
-                    parallelCollection.Add(lastTask);
-                    parallelCollection.Add(task);
-
-                    asList[lastTaskIndex] = parallelCollection;
-                }
-                else
-                {
-                    asParallelTask.Add(task);
-                    asList[lastTaskIndex] = asParallelTask;
-                }
-
-                ActivityQueue = new Queue<IActivity>(asList);
-                wf = this;
-            }
-
-            return wf;
+            return this;
         }
 
         /// <summary>
@@ -186,21 +198,26 @@ namespace FluidFlow.Activities
         /// <returns></returns>
         public WorkflowActivity If<T>(ISpecification<T> specification)
         {
-            if (specBuildState != null)
-                throw new InvalidOperationException(
-                    "You must End() the previous 'IF' condition before beginning a new one");
+            if (_builderState == WorkflowBuilderState.BuildingConditionalWorkflow)
+                throw new InvalidOperationException("You must End() the previous 'IF' condition before beginning a new one");
 
-            var specActivity = new SpecificationActivity<T>(specification, LastActivity)
+            _builderState = WorkflowBuilderState.BuildingConditionalWorkflow;
+
+            // fail cases are optional so make sure there is a default action in there
+            var defaultFailTask = new ExpressionActivity(ActivityType.FireAndForget, () => Thread.Sleep(1));
+            var failWorkflow = new WorkflowActivity(_executor.ServiceQueue, _taskStore);
+            failWorkflow.Do(defaultFailTask);
+
+            var specActivity = new SpecificationActivity<T>(specification, ActivityQueue.LastOrDefault())
             {
-                SuccessTask = new WorkflowActivity(_executor.ServiceQueue, _taskStore),
-                FailTask = new WorkflowActivity(_executor.ServiceQueue, _taskStore)
+                SuccessTask = new WorkflowActivity(_executor.ServiceQueue, _taskStore), FailTask = failWorkflow
             };
 
-            specBuildState = new SpecificationBuildState(SpecificationActivityMode.Success, specActivity);
+            _conditionalActivity = new SpecificationBuildState(SpecificationActivityMode.SuccessCase, specActivity);
 
             return this;
         }
-        
+
         /// <summary>
         /// Begins a workflow that will run when the specification is not satisfied
         /// </summary>
@@ -208,10 +225,10 @@ namespace FluidFlow.Activities
         /// <exception cref="System.InvalidOperationException">Cannot begin an ELSE workflow without first creating an IF workflow.</exception>
         public WorkflowActivity Else()
         {
-            if(specBuildState == null)
+            if (_builderState != WorkflowBuilderState.BuildingConditionalWorkflow)
                 throw new InvalidOperationException("Cannot begin an ELSE workflow without first creating an IF workflow.");
 
-            specBuildState.Mode = SpecificationActivityMode.Fail;
+            _conditionalActivity.Mode = SpecificationActivityMode.FailCase;
             return this;
         }
 
@@ -221,8 +238,9 @@ namespace FluidFlow.Activities
         /// <returns></returns>
         public WorkflowActivity EndIf()
         {
-            ActivityQueue.Enqueue(specBuildState.Activity);
-            specBuildState = null;
+            ActivityQueue.Enqueue(_conditionalActivity.Activity);
+            _builderState = WorkflowBuilderState.BuildingMainWorkflow;
+            _conditionalActivity = null;
 
             return this;
         }
@@ -233,14 +251,14 @@ namespace FluidFlow.Activities
         /// <returns></returns>
         protected override async Task OnRun()
         {
-            if(!ActivityQueue.Any())
+            if (!ActivityQueue.Any())
                 throw new InvalidOperationException("Nothing in the queue!");
 
             while (ActivityQueue.Count > 0)
             {
                 if (State == ActivityState.Delayed)
                     break;
-                
+
                 LastActivity = ActivityQueue.Peek();
                 await _executor.Execute();
             }
@@ -258,78 +276,78 @@ namespace FluidFlow.Activities
         private static WorkflowActivity TryGetWorkflow(IActivity activity)
         {
             var wf = activity as WorkflowActivity;
-            if(wf == null)
+            if (wf == null)
                 throw new InvalidCastException($"Expected WorkflowActivity, Actual {activity.GetType().Name}");
 
             return wf;
         }
 
-        private WorkflowActivity ChainDo(IActivity activity)
+        private void ChainDo(IActivity activity)
         {
             WorkflowActivity wf;
-            if (specBuildState.Mode == SpecificationActivityMode.Success)
+            if (_conditionalActivity.Mode == SpecificationActivityMode.SuccessCase)
             {
-                wf = TryGetWorkflow(specBuildState.Activity.SuccessTask);
-                wf.Do(activity);
+                wf = TryGetWorkflow(_conditionalActivity.Activity.SuccessTask);
+                wf = wf.Do(activity);
             }
             else
             {
-                wf = TryGetWorkflow(specBuildState.Activity.FailTask);
-                wf.Do(activity);
+                wf = TryGetWorkflow(_conditionalActivity.Activity.FailTask);
+                wf = wf.Do(activity);
             }
 
-            return wf;
+            return;
         }
 
-        private WorkflowActivity ChainWaitFor(IActivity activity)
+        private void ChainWaitFor(IActivity activity)
         {
             WorkflowActivity wf;
-            if (specBuildState.Mode == SpecificationActivityMode.Success)
+            if (_conditionalActivity.Mode == SpecificationActivityMode.SuccessCase)
             {
-                wf = TryGetWorkflow(specBuildState.Activity.SuccessTask);
+                wf = TryGetWorkflow(_conditionalActivity.Activity.SuccessTask);
                 wf = wf.WaitFor(activity);
             }
             else
             {
-                wf = TryGetWorkflow(specBuildState.Activity.FailTask);
+                wf = TryGetWorkflow(_conditionalActivity.Activity.FailTask);
                 wf = wf.WaitFor(activity);
             }
 
-            return wf;
+            return;
         }
 
-        private WorkflowActivity ChainFireAndForget(IActivity activity)
+        private void ChainFireAndForget(IActivity activity)
         {
             WorkflowActivity wf;
-            if (specBuildState.Mode == SpecificationActivityMode.Success)
+            if (_conditionalActivity.Mode == SpecificationActivityMode.SuccessCase)
             {
-                wf = TryGetWorkflow(specBuildState.Activity.SuccessTask);
+                wf = TryGetWorkflow(_conditionalActivity.Activity.SuccessTask);
                 wf = wf.FireAndForget(activity);
             }
             else
             {
-                wf = TryGetWorkflow(specBuildState.Activity.FailTask);
+                wf = TryGetWorkflow(_conditionalActivity.Activity.FailTask);
                 wf = wf.FireAndForget(activity);
             }
 
-            return wf;
+            return;
         }
 
-        private WorkflowActivity ChainAnd(IActivity activity)
+        private void ChainAnd(IActivity activity)
         {
             WorkflowActivity wf;
-            if (specBuildState.Mode == SpecificationActivityMode.Success)
+            if (_conditionalActivity.Mode == SpecificationActivityMode.SuccessCase)
             {
-                wf = TryGetWorkflow(specBuildState.Activity.SuccessTask);
+                wf = TryGetWorkflow(_conditionalActivity.Activity.SuccessTask);
                 wf = wf.And(activity);
             }
             else
             {
-                wf = TryGetWorkflow(specBuildState.Activity.FailTask);
+                wf = TryGetWorkflow(_conditionalActivity.Activity.FailTask);
                 wf = wf.And(activity);
             }
 
-            return wf;
+            return;
         }
     }
 }

@@ -60,4 +60,21 @@ namespace FluidFlow.Activities
             await OnRun();
         }
     }
+
+    [Serializable]
+    public class ExpressionActivity : Activity
+    {
+        private readonly Action _onRun;
+
+        public ExpressionActivity(ActivityType type, Action onRun)
+        {
+            _onRun = onRun;
+            Type = type;
+        }
+
+        protected override async Task OnRun()
+        {
+            await Task.Run(_onRun);
+        }
+    }
 }

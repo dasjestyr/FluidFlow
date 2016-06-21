@@ -30,7 +30,7 @@ namespace FluidFlow.Sample1
             var notifyTasks = GetDepartmentEmailAddresses().Select(e => new NotifyRequestActivity(e));
 
             var notifyDepartment = new ParallelActivity(notifyTasks);
-            var requestQualityReview = new RequestQualityReviewActivity(null) { Type = ActivityType.Delayed };
+            var requestQualityReview = new RequestQualityReviewActivity(null);
 
             var requestBoardApproval = new RequestBoardApprovalActivity(null);
 
