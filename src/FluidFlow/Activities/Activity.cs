@@ -45,7 +45,7 @@ namespace FluidFlow.Activities
         /// Executes the task.
         /// </summary>
         /// <returns></returns>
-        public abstract Task OnRun();
+        protected abstract Task OnRun();
 
         /// <summary>
         /// Executes the task.

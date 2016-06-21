@@ -6,20 +6,32 @@ using FluidFlow.Specification;
 namespace FluidFlow.Activities
 {
     [Serializable]
-    internal class SpecificationActivity<T> : Activity
+    internal class SpecificationActivity<T> : Activity, ISpecificationActivity
     {
         private readonly ISpecification<T> _specification;
-        private readonly IActivity _onSuccess;
-        private readonly IActivity _onFail;
         private readonly T _activityResult;
+        
+        /// <summary>
+        /// Gets or sets the success task.
+        /// </summary>
+        /// <value>
+        /// The success task.
+        /// </value>
+        public IActivity SuccessTask { get; internal set; }
+
+        /// <summary>
+        /// Gets or sets the fail task.
+        /// </summary>
+        /// <value>
+        /// The fail task.
+        /// </value>
+        public IActivity FailTask { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SpecificationActivity{T}" /> class.
         /// </summary>
         /// <param name="specification">The specification.</param>
         /// <param name="completedActivity">The completed activity.</param>
-        /// <param name="onSuccess">The run on success.</param>
-        /// <param name="onFail">The run on fail.</param>
         /// <exception cref="ArgumentNullException">
         /// </exception>
         /// <exception cref="InvalidOperationException">
@@ -27,23 +39,23 @@ namespace FluidFlow.Activities
         /// or
         /// </exception>
         /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="InvalidOperationException">Cannot run specification on an uncompleted activity or an activity with a null result</exception>
+        /// <exception cref="InvalidOperationException">Cannot run specification on an uncompleted activity or an activity with a null result
+        /// or</exception>
         /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="InvalidOperationException">Cannot run specification on an uncompleted activity or an activity with a null result</exception>
+        /// <exception cref="InvalidOperationException">Cannot run specification on an uncompleted activity or an activity with a null result
+        /// or</exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException">Cannot run specification on an uncompleted activity or an activity with a null result
+        /// or</exception>
         public SpecificationActivity(
             ISpecification<T> specification, 
-            IActivity completedActivity, 
-            IActivity onSuccess,
-            IActivity onFail)
+            IActivity completedActivity)
         {
             if(specification == null)
                 throw new ArgumentNullException(nameof(specification));
 
             if(completedActivity == null)
                 throw new ArgumentNullException(nameof(completedActivity));
-
-            if(onSuccess == null)
-                throw new ArgumentNullException(nameof(onSuccess));
 
             if(completedActivity.State != ActivityState.Completed || completedActivity.Result == null)
                 throw new InvalidOperationException("Cannot run specification on an uncompleted activity or an activity with a null result");
@@ -52,41 +64,57 @@ namespace FluidFlow.Activities
                 throw new InvalidOperationException($"The result of the provided activity was not of the exepected type (Expected: {typeof(T)}, Actual: {completedActivity.Result.GetType()}) ");
 
             _specification = specification;
-            _onSuccess = onSuccess;
-            _onFail = onFail;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SpecificationActivity{T}"/> class.
-        /// </summary>
-        /// <param name="specification">The specification.</param>
-        /// <param name="completedActivity">The completed activity.</param>
-        /// <param name="onSuccess">The run on success.</param>
-        public SpecificationActivity(
-            ISpecification<T> specification,
-            IActivity completedActivity,
-            IActivity onSuccess) 
-                : this(specification, completedActivity, onSuccess, null)
-        {
         }
 
         /// <summary>
         /// Executes the task.
         /// </summary>
         /// <returns></returns>
-        public override async Task OnRun()
+        protected override async Task OnRun()
         {
             State = ActivityState.Completed;
             if (!_specification.IsSatisfiedBy(_activityResult))
             {
-                if (_onFail == null)
+                if (FailTask == null)
                     return;
 
-                await _onFail.Run();
+                await FailTask.Run();
                 return;
             }
 
-            await _onSuccess.Run();
+            await SuccessTask.Run();
         }
+    }
+    
+    internal interface ISpecificationActivity : IActivity
+    {
+        /// <summary>
+        /// Gets or sets the success task.
+        /// </summary>
+        /// <value>
+        /// The success task.
+        /// </value>
+        IActivity SuccessTask { get; }
+
+        /// <summary>
+        /// Gets or sets the fail task.
+        /// </summary>
+        /// <value>
+        /// The fail task.
+        /// </value>
+        IActivity FailTask { get; }
+    }
+
+    internal enum SpecificationActivityMode
+    {
+        /// <summary>
+        /// Designates that we are currently building a success case
+        /// </summary>
+        Success,
+
+        /// <summary>
+        /// Designates that we are currently building a failure case
+        /// </summary>
+        Fail
     }
 }

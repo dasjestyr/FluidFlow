@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluidFlow", "FluidFlow\Flui
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluidFlow.Tests", "FluidFlow.Tests\FluidFlow.Tests.csproj", "{F254552B-7739-4956-BD0D-E73870F23A1B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluidFlow.Sample1", "FluidFlow.Sample1\FluidFlow.Sample1.csproj", "{CC4FDA3F-D073-4815-9AE2-D6B2DE9DAF39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{F254552B-7739-4956-BD0D-E73870F23A1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F254552B-7739-4956-BD0D-E73870F23A1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F254552B-7739-4956-BD0D-E73870F23A1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC4FDA3F-D073-4815-9AE2-D6B2DE9DAF39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC4FDA3F-D073-4815-9AE2-D6B2DE9DAF39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC4FDA3F-D073-4815-9AE2-D6B2DE9DAF39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC4FDA3F-D073-4815-9AE2-D6B2DE9DAF39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

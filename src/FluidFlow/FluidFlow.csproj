@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activities\SpecificationBuildState.cs" />
     <Compile Include="Ex\ObjectEx.cs" />
     <Compile Include="Ex\TaskEx.cs" />
     <Compile Include="Serialization\BinaryBlobTaskStore.cs" />
@@ -62,7 +63,7 @@
     <Compile Include="Activities\ActivityState.cs" />
     <Compile Include="Activities\ActivityType.cs" />
     <Compile Include="Activities\SpecificationActivity.cs" />
-    <Compile Include="Activities\Workflow.cs" />
+    <Compile Include="Activities\WorkflowActivity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Activities\Activity.cs" />
   </ItemGroup>

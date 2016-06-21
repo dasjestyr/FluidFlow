@@ -7,6 +7,14 @@ namespace FluidFlow.Activities
     public interface IWorkflowExecutor
     {
         /// <summary>
+        /// Gets the service queue.
+        /// </summary>
+        /// <value>
+        /// The service queue.
+        /// </value>
+        IServiceQueue ServiceQueue { get; }
+
+        /// <summary>
         /// Executes this instance.
         /// </summary>
         /// <returns></returns>
@@ -18,7 +26,14 @@ namespace FluidFlow.Activities
     internal class WorkflowExecutor : IWorkflowExecutor
     {
         private readonly IWorkflowActivity _parentActivity;
-        private readonly IServiceQueue _serviceQueue;
+
+        /// <summary>
+        /// Gets the service queue.
+        /// </summary>
+        /// <value>
+        /// The service queue.
+        /// </value>
+        public IServiceQueue ServiceQueue { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowExecutor"/> class.
@@ -36,7 +51,7 @@ namespace FluidFlow.Activities
                 throw new ArgumentNullException(nameof(serviceQueue));
             
             _parentActivity = parentActivity;
-            _serviceQueue = serviceQueue;
+            ServiceQueue = serviceQueue;
         }
 
         /// <summary>
@@ -61,7 +76,7 @@ namespace FluidFlow.Activities
                     Task.Run(() => RunAndRemove(activity)); // allow it to dequeue in the background
                     break;
                 case ActivityType.Delayed:
-                    _serviceQueue.AddTask(activity as IDelayedActivity);
+                    ServiceQueue.AddTask(activity as IDelayedActivity);
                     _parentActivity.State = ActivityState.Delayed;
                     _parentActivity.SaveState();
                     break;

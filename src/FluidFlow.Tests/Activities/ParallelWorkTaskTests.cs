@@ -110,7 +110,7 @@ namespace FluidFlow.Tests.Activities
     [Serializable]
     public class FakeActivity : Activity
     {
-        public override Task OnRun()
+        protected override Task OnRun()
         {
             throw new NotImplementedException();
         }

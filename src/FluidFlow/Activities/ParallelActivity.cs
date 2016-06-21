@@ -23,6 +23,15 @@ namespace FluidFlow.Activities
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ParallelActivity"/> class.
+        /// </summary>
+        /// <param name="activities">The activities.</param>
+        public ParallelActivity(IEnumerable<IActivity> activities)
+        {
+            _tasks = activities.ToList();
+        }
+
+        /// <summary>
         /// Add a tasks to the collection. Duplicate tasks will be ignored.
         /// </summary>
         /// <param name="task"></param>
@@ -42,7 +51,7 @@ namespace FluidFlow.Activities
         /// Starts all tasks and waits until all are completed.
         /// </summary>
         /// <returns></returns>
-        public override async Task OnRun()
+        protected override async Task OnRun()
         {
             var tasks = _tasks.Select(t => t.Run()).ToList();
             await Task.WhenAll(tasks);
