@@ -21,17 +21,29 @@ var packageLeftFacility = new PackageDepartedSpec(order);
 
 // build a workflow
 
+// some implementations excluded for brevity
+
 var workflow = new WorkflowActivity();
 
 workflow
-  .Do(createOrder) // task
-  .Do(notifyUserOrderCreated) // task
-    .And(notifyAccountManagerOrderCreated) // parallel task
-    .And(notifyFulfillmentOrderCreated) // parallel task
-  .WaitFor(orderPackaged)  // task. doesn't continue until state changes (monitored)
-  .Condition(shippingApproved, onShipingApproved) // specification
-    .WaitFor(orderShipped) // task
-    .Do(notifyPackageShipped) // task
+  .Do(createOrder) // activity
+  .Do(notifyUserOrderCreated) // activity
+    .Also(notifyAccountManagerOrderCreated) // parallel activity
+    .Also(notifyFulfillmentOrderCreated) // parallel activity
+  .WaitFor(orderPackaged)  // activity. doesn't continue until state changes (monitored)
+  .If(shippingApproved) // specification. Creates a conditional if/then/else branch
+    .WaitFor(orderShipped) // activity. doesn't continue until state changes (monitored)
+    .If(orderDeparated)
+      .Do(notifyPackageShipped) // activity
+    .Else()
+      .FireAndForget(notifyAdmin)
+      .FireAndForget(notifyUserOrderFailed)
+    .EndIf()
+  .Else()
+    .FireAndForget(notifyUserOrderFailed)
+  .EndIf()
+  .WaitFor(orderDelivered)
+  .FireAndForget(notifyUserOrderDelivered);
   
 await workflow.Run();
 ```
