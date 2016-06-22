@@ -9,12 +9,6 @@ using FluidFlow.Specification;
 
 namespace FluidFlow.Activities
 {
-    internal enum WorkflowBuilderState
-    {
-        BuildingMainWorkflow,
-        BuildingConditionalWorkflow
-    }
-
     [Serializable]
     public class WorkflowActivity : Activity, IWorkflowActivity
     {
@@ -88,8 +82,6 @@ namespace FluidFlow.Activities
                 case WorkflowBuilderState.BuildingConditionalWorkflow:
                     ChainDo(activity);
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
             
             return this;
@@ -111,8 +103,6 @@ namespace FluidFlow.Activities
                 case WorkflowBuilderState.BuildingConditionalWorkflow:
                     ChainWaitFor(activity);
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
             
             return this;
@@ -134,8 +124,6 @@ namespace FluidFlow.Activities
                 case WorkflowBuilderState.BuildingConditionalWorkflow:
                     ChainFireAndForget(activity);
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
 
             return this;
@@ -179,10 +167,8 @@ namespace FluidFlow.Activities
                     ActivityQueue = new Queue<IActivity>(asList);
                     break;
                 case WorkflowBuilderState.BuildingConditionalWorkflow:
-                    ChainAnd(activity);
+                    ChainAlso(activity);
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
 
             return this;
@@ -222,7 +208,7 @@ namespace FluidFlow.Activities
         /// Begins a workflow that will run when the specification is not satisfied
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="System.InvalidOperationException">Cannot begin an ELSE workflow without first creating an IF workflow.</exception>
+        /// <exception cref="InvalidOperationException">Cannot begin an ELSE workflow without first creating an IF workflow.</exception>
         public WorkflowActivity Else()
         {
             if (_builderState != WorkflowBuilderState.BuildingConditionalWorkflow)
@@ -276,8 +262,9 @@ namespace FluidFlow.Activities
         private static WorkflowActivity TryGetWorkflow(IActivity activity)
         {
             var wf = activity as WorkflowActivity;
-            if (wf == null)
-                throw new InvalidCastException($"Expected WorkflowActivity, Actual {activity.GetType().Name}");
+            // REFACTOR: This shouldn't ever be an issue since it is controlled internally
+            //if (wf == null)
+            //    throw new InvalidCastException($"Expected WorkflowActivity, Actual {activity.GetType().Name}");
 
             return wf;
         }
@@ -333,7 +320,7 @@ namespace FluidFlow.Activities
             return;
         }
 
-        private void ChainAnd(IActivity activity)
+        private void ChainAlso(IActivity activity)
         {
             WorkflowActivity wf;
             if (_conditionalActivity.Mode == SpecificationActivityMode.SuccessCase)

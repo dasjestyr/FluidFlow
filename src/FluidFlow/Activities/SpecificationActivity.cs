@@ -25,7 +25,7 @@ namespace FluidFlow.Activities
         /// <value>
         /// The fail task.
         /// </value>
-        public IActivity FailTask { get; set; }
+        public IActivity FailTask { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SpecificationActivity{T}" /> class.

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using FluidFlow.Activities;
@@ -44,6 +45,43 @@ namespace FluidFlow.Tests.Activities
             Assert.Throws<ArgumentNullException>(() => new SpecificationActivity<object>(
                 _specificationMock.Object,
                 null));
+        }
+
+        [Fact]
+        public void Ctor_NullList_Throws()
+        {
+            // arrange
+            List<IActivity> list = null;
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new ParallelActivity(list));
+        }
+
+        [Fact]
+        public void Ctor_EmptyList_Throws()
+        {
+            // arrange
+            var list = new List<IActivity>();
+
+            // act
+
+            // assert
+            Assert.Throws<ArgumentNullException>(() => new ParallelActivity(list));
+        }
+
+        [Fact]
+        public void Ctor_NotNullList_Initializes()
+        {
+            // arrange
+            var list = new List<IActivity> {_activityMock.Object, _activityMock.Object};
+
+            // act
+            var pActivity = new ParallelActivity(list);
+
+            // assert
+            Assert.Equal(2, pActivity.Tasks.Count);
         }
         
         [Fact]
@@ -128,6 +166,50 @@ namespace FluidFlow.Tests.Activities
 
             // assert
             Assert.NotNull(activity);
+        }
+
+        [Fact]
+        public async void OnRun_NoFailTask_NoExceptionThrown()
+        {
+            // arrange
+            var spec = new Mock<ISpecification<int>>();
+            spec.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(false);
+
+            var completedActivity = new Mock<IActivity>();
+            completedActivity.SetupGet(m => m.State).Returns(ActivityState.Completed);
+            completedActivity.SetupGet(m => m.Result).Returns(1);
+
+            var activity = new SpecificationActivity<int>(spec.Object, completedActivity.Object);
+
+            // act
+            await activity.Run();
+
+            // assert
+            // no assertion needed
+        }
+
+        [Fact]
+        public async void OnRun_FailTaskSpecified_IsRun()
+        {
+            // arrange
+            var spec = new Mock<ISpecification<int>>();
+            spec.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(false);
+
+            var completedActivity = new Mock<IActivity>();
+            completedActivity.SetupGet(m => m.State).Returns(ActivityState.Completed);
+            completedActivity.SetupGet(m => m.Result).Returns(1);
+
+            var onFail = new Mock<IActivity>();
+            onFail.Setup(m => m.Run()).Returns(Task.CompletedTask);
+
+            var activity = new SpecificationActivity<int>(spec.Object, completedActivity.Object);
+            activity.FailTask = onFail.Object;
+
+            // act
+            await activity.Run();
+
+            // assert
+            onFail.Verify(m => m.Run(), Times.Once);
         }
     }
 }

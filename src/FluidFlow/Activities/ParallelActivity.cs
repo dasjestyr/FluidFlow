@@ -28,7 +28,11 @@ namespace FluidFlow.Activities
         /// <param name="activities">The activities.</param>
         public ParallelActivity(IEnumerable<IActivity> activities)
         {
-            _tasks = activities.ToList();
+            var activityList = activities.ToList();
+            if (activities == null || !activityList.Any())
+                throw new ArgumentNullException(nameof(activities));
+
+            _tasks = activityList;
         }
 
         /// <summary>

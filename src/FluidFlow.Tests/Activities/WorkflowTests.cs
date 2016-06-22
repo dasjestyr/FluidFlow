@@ -249,6 +249,7 @@ namespace FluidFlow.Tests.Activities
             await Assert.ThrowsAsync<InvalidOperationException>(() => workFlow.Run());
         }
 
+
         [Fact]
         public async void Run_DelayedActivity_CausesShortCircuit()
         {
@@ -297,7 +298,7 @@ namespace FluidFlow.Tests.Activities
             // assert
             Assert.True(wf.LastActivity.Equals(act1.Object));
         }
-
+        
         [Fact]
         public async void If_SpecificationFail_ConditionalNotRun()
         {
@@ -318,8 +319,10 @@ namespace FluidFlow.Tests.Activities
 
             wf.Do(activity1.Object)
                 .If(specification.Object)
-                    .Do(activity1.Object)
                     .Do(activity2.Object)
+                    .Also(activity2.Object)
+                    .FireAndForget(activity2.Object)
+                    .WaitFor(activity2.Object)
                     .EndIf()
                 .Do(activity1.Object);
 
@@ -329,6 +332,41 @@ namespace FluidFlow.Tests.Activities
             // assert
             activity2.Verify(m => m.Run(), Times.Never);
             activity1.Verify(m => m.Run(), Times.Exactly(2)); // wouldlikely be 3 if failed
+        }
+
+        [Fact]
+        public async void If_SpecificationSatisfied_AllActivitiesRun()
+        {
+            // arrange
+            var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
+
+            var specification = new Mock<ISpecification<int>>();
+            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(true);
+
+            var activity1 = new Mock<IActivity>();
+            activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity1.SetupGet(m => m.Result).Returns(1);
+            activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
+
+            var activity2 = new Mock<IActivity>();
+            activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity2.SetupGet(m => m.Result).Returns(1);
+
+            wf.Do(activity1.Object)
+                .If(specification.Object)
+                    .Do(activity2.Object)
+                    .Also(activity2.Object)
+                    .FireAndForget(activity2.Object)
+                    .WaitFor(activity2.Object)
+                    .EndIf()
+                .Do(activity1.Object);
+
+            // act
+            await wf.Run();
+
+            // assert
+            activity2.Verify(m => m.Run(), Times.AtLeast(3)); // actually 4, but the fire and forget may not have registered yet
+            activity1.Verify(m => m.Run(), Times.Exactly(2)); 
         }
 
         [Fact]
@@ -355,11 +393,107 @@ namespace FluidFlow.Tests.Activities
             Assert.Throws<InvalidOperationException>(() => 
                 wf.Do(activity1.Object)
                     .If(specification.Object)
-                        .Do(activity1.Object)
+                        .Do(activity2.Object)
                         .Do(activity2.Object)
                     .If(specification.Object)
                     .EndIf()
                 .Do(activity1.Object));
+        }
+
+        [Fact]
+        public async void Else_FailedSpec_ActivitiesAreRun()
+        {
+            // arrange
+            var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
+
+            var specification = new Mock<ISpecification<int>>();
+            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(false);
+
+            var activity1 = new Mock<IActivity>();
+            activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity1.SetupGet(m => m.Result).Returns(1);
+            activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
+
+            var activity2 = new Mock<IActivity>();
+            activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity2.SetupGet(m => m.Result).Returns(1);
+
+            var activity3 = new Mock<IActivity>();
+            activity3.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity3.SetupGet(m => m.Result).Returns(1);
+
+            wf.Do(activity1.Object)
+                .If(specification.Object)
+                    .Do(activity2.Object)
+                .Else()
+                    .Do(activity3.Object)
+                    .Also(activity3.Object)
+                    .FireAndForget(activity3.Object)
+                    .WaitFor(activity3.Object)
+                    .EndIf()
+                .Do(activity1.Object);
+
+            // act
+            await wf.Run();
+
+            // assert
+            activity1.Verify(m => m.Run(), Times.Exactly(2)); 
+            activity2.Verify(m => m.Run(), Times.Never);
+            activity3.Verify(m => m.Run(), Times.AtLeast(3)); // actually 4, but the fire and forget may not have registered yet
+        }
+
+        [Fact]
+        public void Else_NoIF_Throws()
+        {
+            // arrange
+            var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
+
+            var specification = new Mock<ISpecification<int>>();
+            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(false);
+
+            var activity1 = new Mock<IActivity>();
+            activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity1.SetupGet(m => m.Result).Returns(1);
+            activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
+
+            var activity2 = new Mock<IActivity>();
+            activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
+            activity2.SetupGet(m => m.Result).Returns(1);
+
+            // act
+
+            // assert
+            Assert.Throws<InvalidOperationException>(() =>
+                wf.Do(activity1.Object)
+                    .Else()
+                    .EndIf()
+                .Do(activity1.Object));
+        }
+
+        [Fact]
+        public async void OnRun_DelayedTask_DoesNotProgress()
+        {
+            // arrange
+            var workflow = new WorkflowActivity(_serviceQueue.Object, _store.Object);
+
+            var activity1 = new Mock<IActivity>();
+            activity1.SetupAllProperties();
+            activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
+
+            var activity2 = new Mock<IActivity>();
+            activity2.SetupAllProperties();
+            activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
+
+            workflow
+                .WaitFor(activity1.Object)
+                .Do(activity2.Object);
+
+            // act
+            await workflow.Run();
+
+            // assert
+            activity2.Verify(m => m.Run(), Times.Never);
+            Assert.NotEqual(activity2.Object, workflow.LastActivity);
         }
 
         private static IActivity GetWorkTask()

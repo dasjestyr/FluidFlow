@@ -4,24 +4,6 @@ using System.Threading.Tasks;
 
 namespace FluidFlow.Activities
 {
-    public interface IWorkflowExecutor
-    {
-        /// <summary>
-        /// Gets the service queue.
-        /// </summary>
-        /// <value>
-        /// The service queue.
-        /// </value>
-        IServiceQueue ServiceQueue { get; }
-
-        /// <summary>
-        /// Executes this instance.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException">activity</exception>
-        Task Execute();
-    }
-
     [Serializable]
     internal class WorkflowExecutor : IWorkflowExecutor
     {
@@ -64,36 +46,30 @@ namespace FluidFlow.Activities
             var activity = _parentActivity.ActivityQueue.Peek();
             switch (activity.Type)
             {
+                // activities should be awaited
                 case ActivityType.SychronizedTask:
                 case ActivityType.Parallel:
                 case ActivityType.Specification:
                     _parentActivity.State = ActivityState.Executing;
                     await activity.Run();
-                    DequeueActivity();
+                    _parentActivity.ActivityQueue.Dequeue();
                     break;
+                // activities should be started but not awaited
                 case ActivityType.FireAndForget:
                     _parentActivity.State = ActivityState.Executing;
-                    Task.Run(() => RunAndRemove(activity)); // allow it to dequeue in the background
+                    Task.Run(() => activity.Run()); // allow it to dequeue in the background
+                    _parentActivity.ActivityQueue.Dequeue();
                     break;
+                // activities should be run and then monitored for state change
                 case ActivityType.Delayed:
+                    await activity.Run();
                     ServiceQueue.AddTask(activity as IDelayedActivity);
                     _parentActivity.State = ActivityState.Delayed;
                     _parentActivity.SaveState();
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("activity", $"Unknown task type {activity.Type}");
+                    throw new ArgumentOutOfRangeException("activity.Type", $"Unknown task type {activity.Type}");
             }
-        }
-
-        private async Task RunAndRemove(IActivity activity)
-        {
-            await activity.Run();
-            DequeueActivity(); // TODO: not sure how to test this...
-        }
-
-        private void DequeueActivity()
-        {
-            _parentActivity.ActivityQueue.Dequeue();
         }
     }
 }

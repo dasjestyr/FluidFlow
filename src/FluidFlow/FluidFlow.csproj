@@ -40,7 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Activities\IWorkflowExecutor.cs" />
     <Compile Include="Activities\SpecificationBuildState.cs" />
+    <Compile Include="Activities\WorkflowBuilderState.cs" />
     <Compile Include="Ex\ObjectEx.cs" />
     <Compile Include="Ex\TaskEx.cs" />
     <Compile Include="Serialization\BinaryBlobTaskStore.cs" />
