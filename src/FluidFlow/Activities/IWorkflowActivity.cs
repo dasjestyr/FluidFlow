@@ -48,7 +48,7 @@ namespace FluidFlow.Activities
         /// </summary>
         /// <param name="activity">The activity.</param>
         /// <returns></returns>
-        WorkflowActivity And(IActivity activity);
+        WorkflowActivity Also(IActivity activity);
 
         /// <summary>
         /// If the result of the previous activity satisifies the provided specification, run the provided activity.

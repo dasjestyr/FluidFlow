@@ -182,7 +182,7 @@ namespace FluidFlow.Tests.Activities
             // act
             _workflowActivity
                 .Do(task1)
-                .And(task2);
+                .Also(task2);
 
             // assert
             var last = _workflowActivity.ActivityQueue.ToList().LastOrDefault() as ParallelActivity;
@@ -200,8 +200,8 @@ namespace FluidFlow.Tests.Activities
             // act
             _workflowActivity
                 .Do(task1)
-                .And(task2)
-                .And(task3);
+                .Also(task2)
+                .Also(task3);
 
             var last = _workflowActivity.ActivityQueue.ToList().LastOrDefault() as ParallelActivity;
 
@@ -219,7 +219,7 @@ namespace FluidFlow.Tests.Activities
             // act
 
             // assert
-            Assert.Throws<InvalidOperationException>(() => _workflowActivity.And(task));
+            Assert.Throws<InvalidOperationException>(() => _workflowActivity.Also(task));
         }
 
         [Fact]
@@ -302,8 +302,6 @@ namespace FluidFlow.Tests.Activities
         public async void If_SpecificationFail_ConditionalNotRun()
         {
             // arrange
-            var id1 = Guid.NewGuid();
-            var id2 = Guid.NewGuid();
             var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
             
             var specification = new Mock<ISpecification<int>>();
@@ -311,12 +309,10 @@ namespace FluidFlow.Tests.Activities
 
             var activity1 = new Mock<IActivity>();
             activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
-            activity1.SetupGet(m => m.Id).Returns(id1);
             activity1.SetupGet(m => m.Result).Returns(1);
             activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
 
             var activity2 = new Mock<IActivity>();
-            activity2.SetupGet(m => m.Id).Returns(id2);
             activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
             activity2.SetupGet(m => m.Result).Returns(1);
 
@@ -339,8 +335,6 @@ namespace FluidFlow.Tests.Activities
         public void If_AlreadyBuildingState_Throws()
         {
             // arrange
-            var id1 = Guid.NewGuid();
-            var id2 = Guid.NewGuid();
             var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
 
             var specification = new Mock<ISpecification<int>>();
@@ -348,12 +342,10 @@ namespace FluidFlow.Tests.Activities
 
             var activity1 = new Mock<IActivity>();
             activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
-            activity1.SetupGet(m => m.Id).Returns(id1);
             activity1.SetupGet(m => m.Result).Returns(1);
             activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
 
             var activity2 = new Mock<IActivity>();
-            activity2.SetupGet(m => m.Id).Returns(id2);
             activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
             activity2.SetupGet(m => m.Result).Returns(1);
 

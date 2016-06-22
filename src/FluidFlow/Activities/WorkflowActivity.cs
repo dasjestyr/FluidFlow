@@ -146,7 +146,7 @@ namespace FluidFlow.Activities
         /// </summary>
         /// <param name="activity"></param>
         /// <returns></returns>
-        public WorkflowActivity And(IActivity activity)
+        public WorkflowActivity Also(IActivity activity)
         {
             activity.Type = ActivityType.Parallel;
             switch (_builderState)
@@ -339,12 +339,12 @@ namespace FluidFlow.Activities
             if (_conditionalActivity.Mode == SpecificationActivityMode.SuccessCase)
             {
                 wf = TryGetWorkflow(_conditionalActivity.Activity.SuccessTask);
-                wf = wf.And(activity);
+                wf = wf.Also(activity);
             }
             else
             {
                 wf = TryGetWorkflow(_conditionalActivity.Activity.FailTask);
-                wf = wf.And(activity);
+                wf = wf.Also(activity);
             }
 
             return;
