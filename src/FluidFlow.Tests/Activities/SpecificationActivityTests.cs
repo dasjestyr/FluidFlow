@@ -84,52 +84,7 @@ namespace FluidFlow.Tests.Activities
             Assert.Equal(2, pActivity.Tasks.Count);
         }
         
-        [Fact]
-        public void Ctor_CompletedActivityResultBadState_Throws()
-        {
-            // arrange
-            _activityMock.SetupGet(m => m.State).Returns(ActivityState.Executing);
-
-            // act
-
-            // assert
-            Assert.Throws<InvalidOperationException>(() => new SpecificationActivity<object>(
-                _specificationMock.Object,
-                _activityMock.Object));
-        }
-
-        [Fact]
-        public void Ctor_NullResult_Throws()
-        {
-            // arrange
-            _activityMock.SetupGet(m => m.Result).Returns(null);
-
-            // act
-
-            // assert
-            Assert.Throws<InvalidOperationException>(() => new SpecificationActivity<object>(
-                _specificationMock.Object,
-                _activityMock.Object));
-        }
-
-        [Fact]
-        public void Ctor_ResultUnexpectedType_Throws()
-        {
-            // arrange
-            var completedActivity = new Mock<IActivity>();
-            completedActivity.SetupGet(m => m.Result).Returns("Hello");
-            completedActivity.SetupGet(m => m.State).Returns(ActivityState.Completed);
-
-            var specification = new Mock<ISpecification<int>>();
-
-            // act
-
-            // assert
-            Assert.Throws<InvalidOperationException>(() => new SpecificationActivity<int>(
-                specification.Object,
-                completedActivity.Object));
-        }
-
+        
         [Fact]
         public void Ctor_ValidParameters_Initializes()
         {
@@ -210,6 +165,55 @@ namespace FluidFlow.Tests.Activities
 
             // assert
             onFail.Verify(m => m.Run(), Times.Once);
+        }
+
+        [Fact]
+        public async void OnRun_CompletedActivityResultBadState_Throws()
+        {
+            // arrange
+            _activityMock.SetupGet(m => m.State).Returns(ActivityState.Executing);
+
+            // act
+            var specActivity = new SpecificationActivity<object>(
+                _specificationMock.Object,
+                _activityMock.Object);
+
+            // assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => specActivity.Run());
+        }
+
+        [Fact]
+        public async void OnRun_NullResult_Throws()
+        {
+            // arrange
+            _activityMock.SetupGet(m => m.Result).Returns(null);
+
+            // act
+            var specActivity = new SpecificationActivity<object>(
+                _specificationMock.Object,
+                _activityMock.Object);
+
+            // assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => specActivity.Run());
+        }
+
+        [Fact]
+        public async void OnRun_ResultUnexpectedType_Throws()
+        {
+            // arrange
+            var completedActivity = new Mock<IActivity>();
+            completedActivity.SetupGet(m => m.Result).Returns("Hello");
+            completedActivity.SetupGet(m => m.State).Returns(ActivityState.Completed);
+
+            var specification = new Mock<ISpecification<int>>();
+
+            // act
+            var specAcivity = new SpecificationActivity<int>(
+                specification.Object,
+                completedActivity.Object);
+
+            // assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => specAcivity.Run());
         }
     }
 }

@@ -10,4 +10,20 @@ namespace FluidFlow.Sample1.Specifications
             return target.IsApproved;
         }
     }
+
+    public class QualityReviewApprovedSpec : Specification<StepApproval>
+    {
+        public override bool IsSatisfiedBy(StepApproval target)
+        {
+            return target.IsApproved;
+        }
+    }
+
+    public class BoardApprovedChangesSpec : Specification<StepApproval>
+    {
+        public override bool IsSatisfiedBy(StepApproval target)
+        {
+            return target.IsApproved;
+        }
+    }
 }

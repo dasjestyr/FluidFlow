@@ -9,7 +9,8 @@ namespace FluidFlow.Activities
     internal class SpecificationActivity<T> : Activity, ISpecificationActivity
     {
         private readonly ISpecification<T> _specification;
-        private readonly T _activityResult;
+        private readonly IActivity _completedActivity;
+        private T _activityResult;
         
         /// <summary>
         /// Gets or sets the success task.
@@ -57,13 +58,9 @@ namespace FluidFlow.Activities
             if(completedActivity == null)
                 throw new ArgumentNullException(nameof(completedActivity));
 
-            if(completedActivity.State != ActivityState.Completed || completedActivity.Result == null)
-                throw new InvalidOperationException("Cannot run specification on an uncompleted activity or an activity with a null result");
-
-            if(!completedActivity.Result.TryCast(out _activityResult))
-                throw new InvalidOperationException($"The result of the provided activity was not of the exepected type (Expected: {typeof(T)}, Actual: {completedActivity.Result.GetType()}) ");
-
+            
             _specification = specification;
+            _completedActivity = completedActivity;
         }
 
         /// <summary>
@@ -72,6 +69,12 @@ namespace FluidFlow.Activities
         /// <returns></returns>
         protected override async Task OnRun()
         {
+            if (_completedActivity.State != ActivityState.Completed || _completedActivity.Result == null)
+                throw new InvalidOperationException("Cannot run specification on an uncompleted activity or an activity with a null result");
+
+            if (!_completedActivity.Result.TryCast(out _activityResult))
+                throw new InvalidOperationException($"The result of the provided activity was not of the exepected type (Expected: {typeof(T)}, Actual: {_completedActivity.Result.GetType()}) ");
+
             State = ActivityState.Completed;
             if (!_specification.IsSatisfiedBy(_activityResult))
             {

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using FluidFlow.Activities;
 using FluidFlow.Sample1.Activities;
+using FluidFlow.Sample1.Messaging;
 using FluidFlow.Sample1.Specifications;
 
 namespace FluidFlow.Sample1
@@ -18,6 +15,7 @@ namespace FluidFlow.Sample1
         public TestForm()
         {
             InitializeComponent();
+            MessageBroker.Subscribe(typeof(ActivityRunEvent), OutputMessage);
         }
 
         private async Task RunWorkFlow()
@@ -27,23 +25,38 @@ namespace FluidFlow.Sample1
 
             var createChangeRequest = new CreateChangeRequestActivity();
             var requestManagerApproval = new RequestManagerApprovalActivity(null);
+            
             var notifyTasks = GetDepartmentEmailAddresses().Select(e => new NotifyRequestActivity(e));
 
             var notifyDepartment = new ParallelActivity(notifyTasks);
             var requestQualityReview = new RequestQualityReviewActivity(null);
 
             var requestBoardApproval = new RequestBoardApprovalActivity(null);
+            var publishChanges = new PublishChangesActivity();
 
+            // specs
+            var managerApprovedRequest = new ManagerApprovedRequestSpec();
+            var qualityReviewApproved = new QualityReviewApprovedSpec();
+            var boardApprovedChanges = new BoardApprovedChangesSpec();
+
+            // define the workflow
             var workflow = new WorkflowActivity(serviceQueue, taskStore)
                 .Do(createChangeRequest)
                 .FireAndForget(notifyDepartment)
                 .WaitFor(requestManagerApproval)
-                    .If(new ManagerApprovedRequestSpec())
+                    .If(managerApprovedRequest)
                         .WaitFor(requestQualityReview)
+                        .If(qualityReviewApproved)
+                            .WaitFor(requestBoardApproval)
+                            .If(boardApprovedChanges)
+                                .Do(publishChanges)
+                                .Also(notifyDepartment)
+                            .EndIf()
+                        .EndIf()
                     .Else()
                         .Do(notifyDepartment)
                     .EndIf()
-                .WaitFor(requestBoardApproval);
+                ;
 
             await workflow.Run();
         }
@@ -54,6 +67,20 @@ namespace FluidFlow.Sample1
             {
                 "jon@castleblack.com", "petyr@eeyrie.com", "arya@freecities.com"
             };
+        }
+
+        private void btnCreateChangeRequest_Click(object sender, EventArgs e)
+        {
+            Task.Run(RunWorkFlow);
+            btnCreateChangeRequest.Enabled = false;
+        }
+
+        private void OutputMessage(BrokerEvent ev)
+        {
+            var args = ev as ActivityRunEvent;
+            if(args == null) return;
+
+            Invoke((Action)(() => txtOutput.AppendText(ev.Message + Environment.NewLine)));    
         }
     }
 }

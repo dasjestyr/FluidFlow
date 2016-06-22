@@ -31,6 +31,7 @@ namespace FluidFlow.Sample1.Activities
         protected override async Task OnRun()
         {
             await Task.Delay(1000);
+            Result = new StepApproval(true);
             var e = new ActivityRunEvent
             {
                 EventName = "RequestManagerApprovalActivity",
@@ -97,10 +98,26 @@ namespace FluidFlow.Sample1.Activities
         protected override async Task OnRun()
         {
             await Task.Delay(500);
+            Result = new StepApproval(true);
             var e = new ActivityRunEvent
             {
                 EventName = "RequestBoardApproval",
                 Message = "A request was sent to the board for approval"
+            };
+
+            MessageBroker.Broadcast(e);
+        }
+    }
+
+    public class PublishChangesActivity : Activity
+    {
+        protected override async Task OnRun()
+        {
+            await Task.Delay(500);
+            var e = new ActivityRunEvent
+            {
+                EventName = "PublishChangesActivity",
+                Message = "Changes were published"
             };
 
             MessageBroker.Broadcast(e);
