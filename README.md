@@ -26,8 +26,8 @@ var workflow = new WorkflowActivity();
 workflow
   .Do(createOrder) // activity
   .Do(notifyUserOrderCreated) // activity
-    .Also(notifyAccountManagerOrderCreated) // parallel activity
-    .Also(notifyFulfillmentOrderCreated) // parallel activity
+    .Also(notifyAccountManagerOrderCreated) // parallel activity (runs parallel with notifyUserOrderCreated)
+    .Also(notifyFulfillmentOrderCreated) // parallel activity (runs parallel with notifyUserOrderCreated)
   .WaitFor(orderPackaged)  // activity. doesn't continue until state changes (monitored)
   .If(shippingApproved) // specification. Creates a conditional if/then/else branch
     .WaitFor(orderShipped) // activity. doesn't continue until state changes (monitored)
