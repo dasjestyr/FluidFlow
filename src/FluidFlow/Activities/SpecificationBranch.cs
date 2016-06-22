@@ -1,7 +1,9 @@
 ﻿namespace FluidFlow.Activities
 {
-    internal class SpecificationBuildState
+    internal class SpecificationBranch
     {
+        public SpecificationBranch Previous { get; set; }
+
         /// <summary>
         /// Gets or sets the mode.
         /// </summary>
@@ -19,12 +21,17 @@
         public ISpecificationActivity Activity { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SpecificationBuildState"/> class.
+        /// Initializes a new instance of the <see cref="SpecificationBranch" /> class.
         /// </summary>
+        /// <param name="previous">The previous.</param>
         /// <param name="mode">The mode.</param>
         /// <param name="activity">The activity.</param>
-        public SpecificationBuildState(SpecificationActivityMode mode, ISpecificationActivity activity)
+        public SpecificationBranch(
+            SpecificationBranch previous,
+            SpecificationActivityMode mode, 
+            ISpecificationActivity activity)
         {
+            Previous = previous;
             Mode = mode;
             Activity = activity;
         }

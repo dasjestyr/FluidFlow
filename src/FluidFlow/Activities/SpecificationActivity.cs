@@ -18,7 +18,7 @@ namespace FluidFlow.Activities
         /// <value>
         /// The success task.
         /// </value>
-        public IActivity SuccessTask { get; internal set; }
+        public IWorkflowActivity SuccessTask { get; internal set; }
 
         /// <summary>
         /// Gets or sets the fail task.
@@ -26,7 +26,7 @@ namespace FluidFlow.Activities
         /// <value>
         /// The fail task.
         /// </value>
-        public IActivity FailTask { get; internal set; }
+        public IWorkflowActivity FailTask { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SpecificationActivity{T}" /> class.
@@ -57,7 +57,6 @@ namespace FluidFlow.Activities
 
             if(completedActivity == null)
                 throw new ArgumentNullException(nameof(completedActivity));
-
             
             _specification = specification;
             _completedActivity = completedActivity;
@@ -97,7 +96,7 @@ namespace FluidFlow.Activities
         /// <value>
         /// The success task.
         /// </value>
-        IActivity SuccessTask { get; }
+        IWorkflowActivity SuccessTask { get; }
 
         /// <summary>
         /// Gets or sets the fail task.
@@ -105,7 +104,7 @@ namespace FluidFlow.Activities
         /// <value>
         /// The fail task.
         /// </value>
-        IActivity FailTask { get; }
+        IWorkflowActivity FailTask { get; }
     }
 
     internal enum SpecificationActivityMode

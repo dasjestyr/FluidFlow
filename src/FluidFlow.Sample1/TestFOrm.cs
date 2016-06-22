@@ -55,8 +55,7 @@ namespace FluidFlow.Sample1
                         .EndIf()
                     .Else()
                         .Do(notifyDepartment)
-                    .EndIf()
-                ;
+                    .EndIf();
 
             await workflow.Run();
         }

@@ -154,7 +154,7 @@ namespace FluidFlow.Tests.Activities
             completedActivity.SetupGet(m => m.State).Returns(ActivityState.Completed);
             completedActivity.SetupGet(m => m.Result).Returns(1);
 
-            var onFail = new Mock<IActivity>();
+            var onFail = new Mock<IWorkflowActivity>();
             onFail.Setup(m => m.Run()).Returns(Task.CompletedTask);
 
             var activity = new SpecificationActivity<int>(spec.Object, completedActivity.Object);

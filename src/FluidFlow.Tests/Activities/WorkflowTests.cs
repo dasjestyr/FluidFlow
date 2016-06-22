@@ -68,7 +68,7 @@ namespace FluidFlow.Tests.Activities
             // act
 
             // assert
-            Assert.Throws<ArgumentNullException>(() => new WorkflowActivity(_serviceQueue.Object, _store.Object, null));
+            Assert.Throws<ArgumentNullException>(() => new WorkflowActivity(_serviceQueue.Object, _store.Object, (IWorkflowExecutor) null));
         }
 
         [Fact]
@@ -305,17 +305,17 @@ namespace FluidFlow.Tests.Activities
             // arrange
             var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
             
-            var specification = new Mock<ISpecification<int>>();
-            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(false);
+            var specification = new Mock<ISpecification<string>>();
+            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<string>())).Returns(false);
 
             var activity1 = new Mock<IActivity>();
             activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
-            activity1.SetupGet(m => m.Result).Returns(1);
+            activity1.SetupGet(m => m.Result).Returns("Activity 1");
             activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
 
             var activity2 = new Mock<IActivity>();
             activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
-            activity2.SetupGet(m => m.Result).Returns(1);
+            activity2.SetupGet(m => m.Result).Returns("Activity 2");
 
             wf.Do(activity1.Object)
                 .If(specification.Object)
@@ -368,38 +368,7 @@ namespace FluidFlow.Tests.Activities
             activity2.Verify(m => m.Run(), Times.AtLeast(3)); // actually 4, but the fire and forget may not have registered yet
             activity1.Verify(m => m.Run(), Times.Exactly(2)); 
         }
-
-        [Fact]
-        public void If_AlreadyBuildingState_Throws()
-        {
-            // arrange
-            var wf = new WorkflowActivity(_serviceQueue.Object, _store.Object);
-
-            var specification = new Mock<ISpecification<int>>();
-            specification.Setup(m => m.IsSatisfiedBy(It.IsAny<int>())).Returns(false);
-
-            var activity1 = new Mock<IActivity>();
-            activity1.Setup(m => m.Run()).Returns(Task.CompletedTask);
-            activity1.SetupGet(m => m.Result).Returns(1);
-            activity1.SetupGet(m => m.State).Returns(ActivityState.Completed);
-
-            var activity2 = new Mock<IActivity>();
-            activity2.Setup(m => m.Run()).Returns(Task.CompletedTask);
-            activity2.SetupGet(m => m.Result).Returns(1);
-
-            // act
-
-            // assert
-            Assert.Throws<InvalidOperationException>(() => 
-                wf.Do(activity1.Object)
-                    .If(specification.Object)
-                        .Do(activity2.Object)
-                        .Do(activity2.Object)
-                    .If(specification.Object)
-                    .EndIf()
-                .Do(activity1.Object));
-        }
-
+        
         [Fact]
         public async void Else_FailedSpec_ActivitiesAreRun()
         {
@@ -505,7 +474,7 @@ namespace FluidFlow.Tests.Activities
         }
 
         private static bool TaskIsFound(
-            Func<IActivity, WorkflowActivity> func,
+            Func<IActivity, IWorkflowActivity> func,
             IActivity task,
             WorkflowActivity wf,
             Guid id)
