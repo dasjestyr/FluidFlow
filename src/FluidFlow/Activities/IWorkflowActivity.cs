@@ -75,5 +75,11 @@ namespace FluidFlow.Activities
         /// </summary>
         /// <returns></returns>
         Task SaveState();
+
+        /// <summary>
+        /// Spawns a child workflow that utilize the same resources.
+        /// </summary>
+        /// <returns></returns>
+        IWorkflowActivity GetChild();
     }
 }
