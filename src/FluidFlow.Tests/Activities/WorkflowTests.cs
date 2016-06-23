@@ -237,18 +237,6 @@ namespace FluidFlow.Tests.Activities
             store.Verify(m => m.Save(It.IsAny<IActivity>()), Times.Once);
         }
 
-        [Fact]
-        public async void Run_EmptyQueue_Throws()
-        {
-            // arrange
-            var workFlow = new WorkflowActivity(_serviceQueue.Object, _store.Object);
-
-            // act
-            
-            // assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => workFlow.Run());
-        }
-
 
         [Fact]
         public async void Run_DelayedActivity_CausesShortCircuit()
